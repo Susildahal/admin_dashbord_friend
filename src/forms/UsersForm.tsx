@@ -55,12 +55,13 @@ const Page = () => {
   const [click , setClick] = useState (false); 
   const [limit] = useState(10);
 
+
   // Fetch Users
   const fetchUsers = async (page = 1) => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/users?page=${page}&limit=${limit}`);
-      setUsers(response.data.data);
+      const response = await axiosInstance.get(`/users/user-list?page=${page}&limit=${limit}`);
+      setUsers(response.data.data.users || []);
       setTotalItems(response.data?.pagination?.total || 0);
       setCurrentPage(response.data?.pagination?.page || 1);
     } catch (error) {
@@ -75,10 +76,17 @@ const Page = () => {
   }, [currentPage]);
 
   // Create User Handler
-  const handleCreate = async (values, { resetForm }) => {
+  
+  const handleCreate = async (values, { resetForm  }) => {
+   
     try {
       setLoading(true);
-      await axiosInstance.post("/users/register", values);
+      // When preparing the body for user creation, add createdBy: 'admin'
+      const body = {
+        ...values,
+        createdBy: 'admin',
+      };
+      await axiosInstance.post("/users/register", body );
       resetForm();
       setCreateOpen(false);
       setPreviewData(null);
@@ -138,7 +146,7 @@ const Page = () => {
       const autoTable = (await import('jspdf-autotable')).default;
       
       // Fetch all users for PDF
-      const response = await axiosInstance.get('/users?limit=10000');
+      const response = await axiosInstance.get('/users/user-list?limit=10000');
       const allUsers = response.data.data || [];
 
       if (allUsers.length === 0) {
@@ -246,11 +254,12 @@ const Page = () => {
     try {
       setDownloading(true);
       // Fetch all users for CSV
-      const response = await axiosInstance.get('/users?limit=10000');
+      const response = await axiosInstance.get('/users/user-list?limit=10000');
       const allUsers = response.data.data || [];
 
       if (allUsers.length === 0) {
         alert('No users found to download');
+        setDownloading(false);
         return;
       }
 
@@ -309,10 +318,7 @@ const Page = () => {
 
         <div className="grid grid-cols-2 gap-6 py-4">
           <div className="space-y-4">
-              <div>
-              <p className="text-sm text-gray-500">Image</p>
-              <p className="text-base font-medium"> <img src={data?.profilePicture} alt={data?.name} className="h-10 w-10 rounded-full" /></p>
-            </div>
+           
             <div>
               <p className="text-sm text-gray-500">Name</p>
               <p className="text-base font-medium">{data?.name}</p>
@@ -431,7 +437,7 @@ const Page = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Index</TableHead>
-              <TableHead>Image</TableHead>
+              {/* <TableHead>Image</TableHead> */}
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
@@ -447,14 +453,14 @@ const Page = () => {
             {users.map((user, index) => (
               <TableRow key={user._id}>
                 <TableCell>{(currentPage - 1) * limit + index + 1}</TableCell>
-                <TableCell>
+                {/* <TableCell>
                   <img
                   onClick={() => setClick(user.profilePicture || "/default-profile.png")}
                     src={user.profilePicture || "/default-profile.png"}
                     alt={user.name}
                     className="h-10 w-10 rounded-full"
                   />
-                </TableCell>
+                </TableCell> */}
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role}</TableCell>
@@ -914,13 +920,13 @@ const Page = () => {
               <div className="space-y-2">
                 <div>
                   <p className="text-sm text-gray-500">Image</p>
-                  <p className="text-base font-medium">
+                  {/* <p className="text-base font-medium">
                     <img
                       src={details.profilePicture || "/default-profile.png"}
                       alt={details.name}
                       className="h-10 w-10 rounded-full"
                     />
-                  </p>
+                  </p> */}
                 </div>
                 <p>
                   <strong>Name:</strong> {details.name}

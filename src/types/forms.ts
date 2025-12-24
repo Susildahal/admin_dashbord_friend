@@ -82,9 +82,10 @@ export interface SocialLink {
 }
 
 export interface SanityImageRef {
+  _type: 'image';
   asset: {
+    _type: 'reference';
     _ref: string;
-    _type: string;
   };
 }
 
