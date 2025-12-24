@@ -7,10 +7,16 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { RealWinnersForm, UnitedVoicesForm ,FAQForm, SettingForm ,OurStoryForm ,ContactForm ,UserForm  } from "./forms";
+import {BannerForm, ServicesForm} from "./forms";
+
+
+
 
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import FormsDemo from "./pages/FormsDemo";
 
 const queryClient = new QueryClient();
 
@@ -36,14 +42,23 @@ const App = () => (
               />
               {/* Placeholder routes for content pages */}
               <Route
-                path="/content/*"
+                path="/content/services"
                 element={
                   <ProtectedRoute>
                     <DashboardLayout>
-                      <div className="flex items-center justify-center h-[60vh]">
-                        <p className="text-muted-foreground">Content management coming soon...</p>
-                      </div>
+                      <ServicesForm />
+                 
                     </DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+                 <Route
+                path="/content/real-winners"
+                element={
+                  <ProtectedRoute>
+                      <DashboardLayout>
+                 <RealWinnersForm/>
+                      </DashboardLayout>
                   </ProtectedRoute>
                 }
               />
@@ -52,9 +67,27 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <DashboardLayout>
-                      <div className="flex items-center justify-center h-[60vh]">
-                        <p className="text-muted-foreground">Contacts & Forms coming soon...</p>
-                      </div>
+                    <ContactForm />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+                 <Route
+                path="/content/united-voices"
+                element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <UnitedVoicesForm />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/content/faqs"
+                element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <FAQForm />
                     </DashboardLayout>
                   </ProtectedRoute>
                 }
@@ -64,13 +97,41 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <DashboardLayout>
-                      <div className="flex items-center justify-center h-[60vh]">
-                        <p className="text-muted-foreground">Settings coming soon...</p>
-                      </div>
+                      <SettingForm />
                     </DashboardLayout>
                   </ProtectedRoute>
                 }
               />
+                  <Route
+                  path="/content/banner"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <BannerForm />
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                  <Route
+                  path="/content/our-story"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <OurStoryForm />
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                 <Route
+                  path="/content/users"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <UserForm />
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  }
+                />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

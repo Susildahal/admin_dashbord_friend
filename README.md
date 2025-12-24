@@ -1,4 +1,77 @@
-# Welcome to your Lovable project
+# Welcome to Admin Dashboard
+
+A comprehensive admin dashboard with **8 production-ready forms** built using React, TypeScript, Formik, Yup, and shadcn/ui components.
+
+## 🚀 Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env and set VITE_API_BASE_URL
+
+# Start development server
+npm run dev
+
+# Navigate to http://localhost:5173/forms to see all forms
+```
+
+## ✨ What's Included
+
+### 8 Production-Ready Forms
+1. **Contact Form** - Standard contact with validation
+2. **FAQ Form** - Image upload + dynamic Q&A
+3. **Our Story Form** - Complex nested sections
+4. **Real Winners Form** - Icon selector + winners list
+5. **Services Form** - Tabbed interface with comprehensive fields
+6. **Settings Form** - Site config + social media
+7. **United Voices Form** - Dual image upload (2MB max)
+8. **Banner Form** - Simple title/subtitle
+
+### Features
+- ✅ Full TypeScript support
+- ✅ Formik form management
+- ✅ Yup validation schemas
+- ✅ File upload with preview
+- ✅ Dynamic arrays (add/remove)
+- ✅ Icon selectors
+- ✅ Toast notifications
+- ✅ Loading states
+- ✅ Responsive design
+- ✅ Accessibility support
+
+## 📚 Documentation
+
+**Start Here:**
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick start guide ⚡
+- **[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)** - Complete docs index
+
+**Complete Guides:**
+- [FORMS_GUIDE.md](FORMS_GUIDE.md) - Implementation guide
+- [API_ENDPOINTS.md](API_ENDPOINTS.md) - Backend specifications
+- [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture
+- [src/forms/README.md](src/forms/README.md) - Detailed form docs
+
+## 🎯 Usage
+
+### Import Forms
+```tsx
+import { ContactForm, FAQForm, ServicesForm } from '@/forms';
+
+function MyPage() {
+  return <ContactForm />;
+}
+```
+
+### Access Types
+```tsx
+import type { ContactFormData } from '@/types/forms';
+```
+
+### Demo Page
+Visit `/forms` in your browser to see all forms in action with comprehensive examples.
 
 ## Project info
 
