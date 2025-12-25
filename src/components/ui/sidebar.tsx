@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { VariantProps, cva } from "class-variance-authority";
-import { PanelLeft } from "lucide-react";
+import { PanelLeft ,Menu, X } from "lucide-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -200,6 +200,11 @@ const Sidebar = React.forwardRef<
           variant === "floating" || variant === "inset"
             ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
             : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
+          // Animation for open/close
+          // state === "collapsed"
+          //   ? "opacity-0 -translate-x-8 pointer-events-none"
+          //   : "opacity-100 translate-x-0",
+          // "transition-all duration-300 ease-in-out",
           className,
         )}
         {...props}
@@ -218,24 +223,41 @@ Sidebar.displayName = "Sidebar";
 
 const SidebarTrigger = React.forwardRef<React.ElementRef<typeof Button>, React.ComponentProps<typeof Button>>(
   ({ className, onClick, ...props }, ref) => {
-    const { toggleSidebar } = useSidebar();
+    const { toggleSidebar, open } = useSidebar();
 
     return (
-      <Button
-        ref={ref}
-        data-sidebar="trigger"
-        variant="ghost"
-        size="icon"
-        className={cn("h-7 w-7", className)}
-        onClick={(event) => {
-          onClick?.(event);
-          toggleSidebar();
-        }}
-        {...props}
-      >
-        <PanelLeft />
-        <span className="sr-only">Toggle Sidebar</span>
-      </Button>
+   <Button
+  ref={ref}
+  data-sidebar="trigger"
+  variant="ghost"
+  size="icon"
+  className={cn("h-7 w-7", className)}
+  onClick={(event) => {
+    onClick?.(event);
+    toggleSidebar();
+  }}
+  {...props}
+>
+  {/* DESKTOP (md+) */}
+  <span className="hidden md:inline">
+    {open ? (
+      <X className="h-4 w-4" />
+    ) : (
+      <Menu className="h-4 w-4" />
+    )}
+  </span>
+
+  {/* MOBILE (below md) – opposite */}
+  <span className="inline md:hidden">
+    {open ? (
+      <Menu className="h-4 w-4" />
+    ) : (
+      <X className="h-4 w-4" />
+    )}
+  </span>
+
+  <span className="sr-only">Toggle Sidebar</span>
+</Button>
     );
   },
 );

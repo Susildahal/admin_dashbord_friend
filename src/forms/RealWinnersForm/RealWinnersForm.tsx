@@ -454,7 +454,7 @@ const RealWinnersForm = () => {
 
               {/* Submit Buttons */}
               <div className="flex gap-4">
-                <Button type="submit" disabled={isSubmitting} className="flex-1">
+                <Button type="submit" disabled={isSubmitting} className="flex-1" variant="theme">
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

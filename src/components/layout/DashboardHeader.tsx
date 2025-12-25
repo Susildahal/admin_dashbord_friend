@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Search, Moon, Sun, LogOut, User } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import axiosInstance from '@/lib/axios';
+import { useEffect } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,6 +16,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useTheme } from '@/hooks/useTheme';
+import { set } from 'date-fns';
+import { Handle } from 'vaul';
 
 const routeNames: Record<string, string> = {
   '/': 'Dashboard',
@@ -30,7 +34,6 @@ const routeNames: Record<string, string> = {
 
 export function DashboardHeader() {
   const location = useLocation();
-  const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -57,6 +60,20 @@ export function DashboardHeader() {
   };
 
   const breadcrumbs = getBreadcrumbs();
+const [mee ,setMee] = useState(null);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axiosInstance.get('/users/me');
+        setMee(response.data.data);
+      } catch (error) {
+        // Handle error
+      }
+    };
+
+    fetchData();
+  }, []);
+
 
   return (
     <header className="h-16 border-b   border-border bg-background flex items-center justify-between px-4 gap-4">
@@ -77,16 +94,7 @@ export function DashboardHeader() {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="relative hidden sm:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 w-64 h-9"
-          />
-        </div>
+       
 
         <Button
           variant="ghost"
@@ -95,9 +103,9 @@ export function DashboardHeader() {
           className="h-9 w-9"
         >
           {theme === 'dark' ? (
-            <Sun className="h-4 w-4" />
+            <Sun className="h-4 w-4 text-[#ca7b28]" />
           ) : (
-            <Moon className="h-4 w-4" />
+            <Moon className="h-4 w-4 text-[#ca7b28]" />
           )}
           <span className="sr-only">Toggle theme</span>
         </Button>
@@ -109,19 +117,19 @@ export function DashboardHeader() {
                 <User className="h-4 w-4 text-background" />
               </div>
               <span className="hidden sm:inline text-sm font-medium">
-                {user?.email?.split('@')[0] || 'Admin'}
+                {mee?.email?.split('@')[0] || 'Admin'}
               </span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">{user?.email?.split('@')[0] || 'Admin'}</p>
-                <p className="text-xs text-muted-foreground">{user?.email}</p>
+                <p className="text-sm font-medium">{mee?.email?.split('@')[0] || 'Admin'}</p>
+                <p className="text-xs text-muted-foreground">{mee?.email}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={signOut} className="text-destructive cursor-pointer">
+            <DropdownMenuItem onClick={Handle} className="text-destructive cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
             </DropdownMenuItem>

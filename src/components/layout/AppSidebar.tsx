@@ -13,6 +13,8 @@ import {
   Users,
   Settings,
   ChevronDown,
+  Search,
+  X,
 } from 'lucide-react';
 import client from '@/config/sanity';
 import { NavLink } from '@/components/NavLink';
@@ -25,6 +27,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarHeader,
   SidebarFooter,
   useSidebar,
@@ -35,6 +40,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 
 const mainNavItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
@@ -70,6 +76,7 @@ export function AppSidebar() {
   
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   
   const isContentActive = contentItems.some(item => 
     location.pathname.startsWith(item.url)
@@ -98,6 +105,28 @@ export function AppSidebar() {
     fetchServices();
   }, []);
 
+  // Filter navigation items based on search query
+  const filteredMainNavItems = mainNavItems.filter(item =>
+    item.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredContentItems = contentItems.filter(item =>
+    item.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredServices = services.filter(service =>
+    service.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredOtherNavItems = otherNavItems.filter(item =>
+    item.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Check if any items are visible in each section
+  const hasMainItems = filteredMainNavItems.length > 0;
+  const hasContentItems = filteredContentItems.length > 0 || filteredServices.length > 0;
+  const hasOtherItems = filteredOtherNavItems.length > 0;
+
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border scrollbar-hide">
       <SidebarHeader className="border-sidebar-border p-4">
@@ -115,23 +144,43 @@ export function AppSidebar() {
             </div>
           )}
         </div>
+        {!collapsed && (
+          <div className="relative mt-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search navigation..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-9 h-9 text-sm"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        )}
       </SidebarHeader>
 
-      <SidebarContent className="p-2">
+      <SidebarContent className="p-2 scrollbar-hide">
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
             Main
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNavItems.map((item) => (
+              {filteredMainNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <NavLink
                       to={item.url}
                       end
                       className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+                      activeClassName="bg-sidebar-accent text-theme"
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       {!collapsed && <span>{item.title}</span>}
@@ -149,13 +198,13 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {contentItems.map((item) => (
+              {filteredContentItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <NavLink
                       to={item.url}
                       className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+                      activeClassName="bg-sidebar-accent text-theme"
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       {!collapsed && <span>{item.title}</span>}
@@ -164,60 +213,69 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
               
-              {/* Services Collapsible */}
-              <Collapsible
-                open={servicesOpen}
-                onOpenChange={setServicesOpen}
-                className="group/collapsible"
-              >
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                      tooltip="Services"
-                      className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent w-full",
-                        isServicesActive && "bg-sidebar-accent text-sidebar-accent-foreground"
-                      )}
-                    >
-                      <Wrench className="h-4 w-4 shrink-0" />
-                      {!collapsed && (
-                        <>
-                          <span className="flex-1 text-left">Services</span>
-                          <ChevronDown className={cn(
-                            "h-4 w-4 transition-transform",
-                            servicesOpen && "rotate-180"
-                          )} />
-                        </>
-                      )}
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  {!collapsed && (
-                    <CollapsibleContent>
-                      <div className="ml-1 mt-1 space-y-1 pl-2 max-h-60 overflow-y-auto scrollbar-hide">
-                        {loadingServices ? (
-                          <div className="py-2 text-xs text-muted-foreground">Loading...</div>
-                        ) : services.length === 0 ? (
-                          <div className="py-2 text-xs text-muted-foreground">No services found</div>
-                        ) : (
-                          services.map((service) => (
-                            <button
-                              key={service._id}
-                              onClick={() => navigate(`/content/services/${service._id}`)}
-                              className={cn(
-                                "w-full text-left px-3 py-2 text-sm rounded-md transition-colors hover:bg-sidebar-accent",
-                                location.pathname === `/content/services/${service._id}` &&
-                                  "bg-sidebar-accent text-sidebar-accent-foreground"
-                              )}
-                            >
-                              {service.title}
-                            </button>
-                          ))
+              {/* Services Collapsible - only show if there are services or if searching */}
+              {(filteredServices.length > 0 || (searchQuery && services.length > 0)) && (
+                <Collapsible
+                  open={servicesOpen}
+                  onOpenChange={setServicesOpen}
+                  className="group/collapsible"
+                >
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton
+                        tooltip="Services"
+                        className={cn(
+                          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent w-full",
+                          isServicesActive && "bg-sidebar-accent text-theme"
                         )}
-                      </div>
-                    </CollapsibleContent>
-                  )}
-                </SidebarMenuItem>
-              </Collapsible>
+                      >
+                        <Wrench className="h-4 w-4 shrink-0" />
+                        {!collapsed && (
+                          <>
+                            <span className="flex-1 text-left">Services</span>
+                            <ChevronDown className={cn(
+                              "h-4 w-4 transition-transform",
+                              servicesOpen && "rotate-180"
+                            )} />
+                          </>
+                        )}
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    {!collapsed && (
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {loadingServices ? (
+                            <SidebarMenuSubItem>
+                              <span className="flex h-7 min-w-0 items-center gap-2 overflow-hidden rounded-md px-2 text-xs text-muted-foreground">
+                                Loading...
+                              </span>
+                            </SidebarMenuSubItem>
+                          ) : filteredServices.length === 0 ? (
+                            <SidebarMenuSubItem>
+                              <span className="flex h-7 min-w-0 items-center gap-2 overflow-hidden rounded-md px-2 text-xs text-muted-foreground">
+                                {searchQuery ? 'No services match' : 'No services found'}
+                              </span>
+                            </SidebarMenuSubItem>
+                          ) : (
+                            filteredServices.map((service) => (
+                              <SidebarMenuSubItem key={service._id}>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={location.pathname === `/content/services/${service._id}`}
+                                >
+                                  <button onClick={() => navigate(`/content/services/${service._id}`)}>
+                                    <span>{service.title}</span>
+                                  </button>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))
+                          )}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    )}
+                  </SidebarMenuItem>
+                </Collapsible>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -228,13 +286,13 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {otherNavItems.map((item) => (
+              {filteredOtherNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <NavLink
                       to={item.url}
                       className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+                      activeClassName="bg-sidebar-accent text-theme"
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       {!collapsed && <span>{item.title}</span>}

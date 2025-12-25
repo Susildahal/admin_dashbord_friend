@@ -50,6 +50,8 @@
     --sidebar-border: 0 0% 90%;
     --sidebar-ring: 0 0% 9%;
 
+    --theme: #ca7b28;
+
     /* Custom grayscale tokens */
     --gray-50: 0 0% 98%;
     --gray-100: 0 0% 96%;

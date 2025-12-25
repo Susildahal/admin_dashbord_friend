@@ -74,6 +74,7 @@ export default {
           900: "hsl(var(--gray-900))",
           950: "hsl(var(--gray-950))",
         },
+        theme: "#ca7b28",
       },
       borderRadius: {
         lg: "var(--radius)",

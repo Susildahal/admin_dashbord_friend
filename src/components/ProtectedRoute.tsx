@@ -1,12 +1,14 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
+const user = "susil"; // Replace with actual user retrieval logic
+const loading = false; // Replace with actual loading state logic
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
+
   const location = useLocation();
 
   if (loading) {
