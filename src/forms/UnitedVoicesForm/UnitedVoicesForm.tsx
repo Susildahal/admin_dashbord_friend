@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik';
 import { UnitedVoicesFormData } from '@/types/forms';
 import { unitedVoicesValidationSchema } from './validation';
@@ -11,12 +11,50 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Plus, Trash2, Upload, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import client from '@/config/sanity';
+import imageUrlBuilder from '@sanity/image-url';
+
+interface VoiceItem {
+  heading: string;
+  subHeading: string;
+}
+
+interface UnitedVoicesDocument {
+  _id: string;
+  title?: string;
+  subTitle?: string;
+  description?: string;
+  frontimage?: {
+    asset: {
+      _ref: string;
+      _type: string;
+    };
+  };
+  backimage?: {
+    asset: {
+      _ref: string;
+      _type: string;
+    };
+  };
+  voices?: VoiceItem[];
+}
+
+const builder = imageUrlBuilder(client);
+
+const urlFor = (source: any) => {
+  return builder.image(source).url();
+};
 
 const UnitedVoicesForm = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [frontImagePreview, setFrontImagePreview] = useState<string | null>(null);
   const [backImagePreview, setBackImagePreview] = useState<string | null>(null);
+  const [newFrontImage, setNewFrontImage] = useState<File | null>(null);
+  const [newBackImage, setNewBackImage] = useState<File | null>(null);
+  const [unitedVoicesData, setUnitedVoicesData] = useState<UnitedVoicesDocument | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const initialValues: UnitedVoicesFormData = {
     title: '',
@@ -27,57 +65,65 @@ const UnitedVoicesForm = () => {
     voices: [],
   };
 
-  const handleSubmit = async (values: UnitedVoicesFormData, { resetForm }: any) => {
-    setIsSubmitting(true);
-    try {
-      const formData = new FormData();
-      
-      if (values.title) formData.append('title', values.title);
-      if (values.subTitle) formData.append('subTitle', values.subTitle);
-      if (values.description) formData.append('description', values.description);
-      
-      if (values.frontimage) {
-        formData.append('frontimage', values.frontimage);
-      }
-      if (values.backimage) {
-        formData.append('backimage', values.backimage);
-      }
-      
-      if (values.voices && values.voices.length > 0) {
-        formData.append('voices', JSON.stringify(values.voices));
-      }
+  // Fetch United Voices data from Sanity
+  useEffect(() => {
+    const fetchUnitedVoicesData = async () => {
+      try {
+        setIsLoading(true);
+        const query = `*[_type == "unitedVoices"][0]`;
+        const data = await client.fetch(query);
 
-      const response = await axiosInstance.post('/united-voices', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      
-      toast({
-        title: 'Success!',
-        description: 'United Voices section has been created successfully.',
-        variant: 'default',
-      });
-      
-      resetForm();
-      setFrontImagePreview(null);
-      setBackImagePreview(null);
-      console.log('Response:', response.data);
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to submit form. Please try again.',
-        variant: 'destructive',
-      });
-      console.error('Submission error:', error);
-    } finally {
-      setIsSubmitting(false);
+        if (data) {
+          setUnitedVoicesData(data);
+          setIsEditMode(true);
+
+          if (data.frontimage?.asset) {
+            const imageUrl = urlFor(data.frontimage);
+            setFrontImagePreview(imageUrl);
+          }
+
+          if (data.backimage?.asset) {
+            const imageUrl = urlFor(data.backimage);
+            setBackImagePreview(imageUrl);
+          }
+        } else {
+          setIsEditMode(false);
+        }
+      } catch (error) {
+        console.error('Error fetching United Voices data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch United Voices data',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUnitedVoicesData();
+  }, [toast]);
+
+  const getInitialFormValues = (): UnitedVoicesFormData => {
+    if (unitedVoicesData) {
+      return {
+        title: unitedVoicesData.title || '',
+        subTitle: unitedVoicesData.subTitle || '',
+        description: unitedVoicesData.description || '',
+        frontimage: null,
+        backimage: null,
+        voices: unitedVoicesData.voices || [],
+      };
     }
+    return initialValues;
   };
 
   const handleImageChange = (
     event: React.ChangeEvent<HTMLInputElement>,
     setFieldValue: any,
     fieldName: string,
-    setPreview: (preview: string | null) => void
+    setPreview: (preview: string | null) => void,
+    setNewImage: (file: File | null) => void
   ) => {
     const file = event.currentTarget.files?.[0];
     if (file) {
@@ -102,6 +148,7 @@ const UnitedVoicesForm = () => {
       }
 
       setFieldValue(fieldName, file);
+      setNewImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result as string);
@@ -113,9 +160,11 @@ const UnitedVoicesForm = () => {
   const removeImage = (
     setFieldValue: any,
     fieldName: string,
-    setPreview: (preview: string | null) => void
+    setPreview: (preview: string | null) => void,
+    setNewImage: (file: File | null) => void
   ) => {
     setFieldValue(fieldName, null);
+    setNewImage(null);
     setPreview(null);
   };
 
@@ -124,20 +173,146 @@ const UnitedVoicesForm = () => {
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   };
+
+  const handleSubmit = async (values: UnitedVoicesFormData, { resetForm }: any) => {
+    setIsSubmitting(true);
+    try {
+      if (isEditMode && unitedVoicesData) {
+        // Update existing United Voices
+        await updateUnitedVoices(values);
+      } else {
+        // Create new United Voices
+        await createUnitedVoices(values);
+      }
+
+      toast({
+        title: 'Success!',
+        description: isEditMode
+          ? 'United Voices section has been updated successfully.'
+          : 'United Voices section has been created successfully.',
+        variant: 'default',
+      });
+
+      // Refresh data
+      const query = `*[_type == "unitedVoices"][0]`;
+      const updatedData = await client.fetch(query);
+      setUnitedVoicesData(updatedData);
+      setIsEditMode(true);
+
+      if (!isEditMode) {
+        resetForm();
+        setFrontImagePreview(null);
+        setBackImagePreview(null);
+        setNewFrontImage(null);
+        setNewBackImage(null);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to submit form. Please try again.',
+        variant: 'destructive',
+      });
+      console.error('Submission error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const createUnitedVoices = async (values: UnitedVoicesFormData) => {
+    const payload: any = {
+      _type: 'unitedVoices',
+      title: values.title || undefined,
+      subTitle: values.subTitle || undefined,
+      description: values.description || undefined,
+      voices: values.voices || [],
+    };
+
+    if (newFrontImage) {
+      const asset = await client.assets.upload('image', newFrontImage);
+      payload.frontimage = {
+        _type: 'image',
+        asset: {
+          _type: 'reference',
+          _ref: asset._id,
+        },
+      };
+    }
+
+    if (newBackImage) {
+      const asset = await client.assets.upload('image', newBackImage);
+      payload.backimage = {
+        _type: 'image',
+        asset: {
+          _type: 'reference',
+          _ref: asset._id,
+        },
+      };
+    }
+
+    await client.create(payload);
+  };
+
+  const updateUnitedVoices = async (values: UnitedVoicesFormData) => {
+    if (!unitedVoicesData) return;
+
+    const updatePayload: any = {
+      title: values.title || undefined,
+      subTitle: values.subTitle || undefined,
+      description: values.description || undefined,
+      voices: values.voices || [],
+    };
+
+    if (newFrontImage) {
+      const asset = await client.assets.upload('image', newFrontImage);
+      updatePayload.frontimage = {
+        _type: 'image',
+        asset: {
+          _type: 'reference',
+          _ref: asset._id,
+        },
+      };
+    }
+
+    if (newBackImage) {
+      const asset = await client.assets.upload('image', newBackImage);
+      updatePayload.backimage = {
+        _type: 'image',
+        asset: {
+          _type: 'reference',
+          _ref: asset._id,
+        },
+      };
+    }
+
+    await client.patch(unitedVoicesData._id).set(updatePayload).commit();
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle>United Voices</CardTitle>
-        <CardDescription>Create and manage the United Voices section with images and voice items.</CardDescription>
+        <CardDescription>
+          {isEditMode ? 'Update' : 'Create'} the United Voices section with images and voice items.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Formik
-          initialValues={initialValues}
+          initialValues={getInitialFormValues()}
           validationSchema={unitedVoicesValidationSchema}
           onSubmit={handleSubmit}
+          enableReinitialize
         >
           {({ errors, touched, values, setFieldValue }) => (
             <Form className="space-y-6">
@@ -184,14 +359,14 @@ const UnitedVoicesForm = () => {
                       size="icon"
                       className="absolute top-2 right-2"
                       onClick={() =>
-                        removeImage(setFieldValue, 'frontimage', setFrontImagePreview)
+                        removeImage(setFieldValue, 'frontimage', setFrontImagePreview, setNewFrontImage)
                       }
                     >
                       <X className="h-4 w-4" />
                     </Button>
-                    {values.frontimage instanceof File && (
+                    {newFrontImage && (
                       <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                        {formatFileSize(values.frontimage.size)}
+                        {formatFileSize(newFrontImage.size)}
                       </div>
                     )}
                   </div>
@@ -214,7 +389,8 @@ const UnitedVoicesForm = () => {
                             e,
                             setFieldValue,
                             'frontimage',
-                            setFrontImagePreview
+                            setFrontImagePreview,
+                            setNewFrontImage
                           )
                         }
                       />
@@ -245,14 +421,14 @@ const UnitedVoicesForm = () => {
                       size="icon"
                       className="absolute top-2 right-2"
                       onClick={() =>
-                        removeImage(setFieldValue, 'backimage', setBackImagePreview)
+                        removeImage(setFieldValue, 'backimage', setBackImagePreview, setNewBackImage)
                       }
                     >
                       <X className="h-4 w-4" />
                     </Button>
-                    {values.backimage instanceof File && (
+                    {newBackImage && (
                       <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                        {formatFileSize(values.backimage.size)}
+                        {formatFileSize(newBackImage.size)}
                       </div>
                     )}
                   </div>
@@ -271,7 +447,13 @@ const UnitedVoicesForm = () => {
                         accept="image/jpeg,image/png,image/jpg"
                         className="hidden"
                         onChange={(e) =>
-                          handleImageChange(e, setFieldValue, 'backimage', setBackImagePreview)
+                          handleImageChange(
+                            e,
+                            setFieldValue,
+                            'backimage',
+                            setBackImagePreview,
+                            setNewBackImage
+                          )
                         }
                       />
                     </Label>
@@ -349,10 +531,10 @@ const UnitedVoicesForm = () => {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Submitting...
+                      {isEditMode ? 'Updating...' : 'Creating...'}
                     </>
                   ) : (
-                    'Submit United Voices'
+                    isEditMode ? 'Update United Voices' : 'Create United Voices'
                   )}
                 </Button>
                 <Button type="reset" variant="outline" disabled={isSubmitting}>

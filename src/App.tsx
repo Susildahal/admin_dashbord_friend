@@ -42,12 +42,11 @@ const App = () => (
               />
               {/* Placeholder routes for content pages */}
               <Route
-                path="/content/services"
+                path="/content/services/:id"
                 element={
                   <ProtectedRoute>
                     <DashboardLayout>
                       <ServicesForm />
-                 
                     </DashboardLayout>
                   </ProtectedRoute>
                 }

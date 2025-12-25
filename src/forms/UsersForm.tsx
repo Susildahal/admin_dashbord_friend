@@ -36,6 +36,8 @@ import * as Yup from "yup";
 import { Trash2, SquarePen, MoreVertical, Eye, EyeClosed, ChevronLeft, Download, FileDown } from "lucide-react";
 import axiosInstance from "@/lib/axios";
 import Header from "../common/Header"
+import DeleteConfirmation from "../common/DeleteConformatio";
+import { useToast } from '@/hooks/use-toast';
 
 
 const Page = () => {
@@ -54,6 +56,8 @@ const Page = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [click , setClick] = useState (false); 
   const [limit] = useState(10);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const { toast } = useToast();
 
 
   // Fetch Users
@@ -84,7 +88,7 @@ const Page = () => {
       // When preparing the body for user creation, add createdBy: 'admin'
       const body = {
         ...values,
-        createdBy: 'admin',
+        createdBy: 'Admin',
       };
       await axiosInstance.post("/users/register", body );
       resetForm();
@@ -92,6 +96,11 @@ const Page = () => {
       setPreviewData(null);
       setPassword(false);
       fetchUsers(currentPage);
+      toast({
+        title: 'Success!',
+        description: 'User has been created successfully.',
+        variant: 'default',
+      });
     } catch (error) {
       console.log("Error creating user:", error);
     } finally {
@@ -104,13 +113,22 @@ const Page = () => {
 
   // Update User Handler
   const handleUpdate = async (values) => {
+       const body = {
+        ...values,
+        createdBy: 'Admin',
+      };
     try {
-      await axiosInstance.put(`/users/updateuser/${editData._id}`, values);
+      await axiosInstance.put(`/users/updateuser/${editData._id}`, body);
       setEditData(null);
       setPreviewData(null);
       setIsEditing(false);
       setPassword(false);
       fetchUsers(currentPage);
+      toast({
+        title: 'Success!',
+        description: 'User has been updated successfully.',
+        variant: 'default',
+      });
     } catch (error) {
       console.log("Error updating:", error);
     }
@@ -131,6 +149,11 @@ const Page = () => {
     try {
       await axiosInstance.patch(`/users/updateuserstatus/${userId}`, { status: newStatus });
       fetchUsers(currentPage);
+      toast({
+        title: 'Success!',
+        description: 'User status has been updated.',
+        variant: 'default',
+      });
     } catch (error) {
       console.log("Error updating status:", error);
     }
@@ -444,8 +467,10 @@ const Page = () => {
               <TableHead>Status</TableHead>
               <TableHead>Address</TableHead>
               <TableHead>Phone</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead>Date</TableHead>  
+                 <TableHead>User Types</TableHead>
               <TableHead>Actions</TableHead>
+              
             </TableRow>
           </TableHeader>
 
@@ -472,6 +497,7 @@ const Page = () => {
                 <TableCell>
                   {new Date(user.createdAt).toLocaleDateString()}
                 </TableCell>
+                <TableCell>{user.createdBy}</TableCell>
                 <TableCell className="flex gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -918,16 +944,16 @@ const Page = () => {
             </DialogHeader>
             {details && (
               <div className="space-y-2">
-                <div>
+                {/* <div>
                   <p className="text-sm text-gray-500">Image</p>
-                  {/* <p className="text-base font-medium">
+                  <p className="text-base font-medium">
                     <img
                       src={details.profilePicture || "/default-profile.png"}
                       alt={details.name}
                       className="h-10 w-10 rounded-full"
                     />
-                  </p> */}
-                </div>
+                  </p>
+                </div> */}
                 <p>
                   <strong>Name:</strong> {details.name}
                 </p>
@@ -943,6 +969,9 @@ const Page = () => {
                 <p>
                   <strong>Phone:</strong> {details.phone}
                 </p>
+                 <p className="capitalize">
+                  <strong>User Types:</strong> {details.createdBy}
+                </p>
                 <p>
                   <strong>Status:</strong> {details.status ? "Active" : "Inactive"}
                 </p>
@@ -954,7 +983,36 @@ const Page = () => {
             )}
           </DialogContent>
         </Dialog>
-
+            <DeleteConfirmation 
+          isOpen={!!deleteId}
+          onClose={() => setDeleteId(null)}
+          onConfirm={async () => {
+            try {
+              setDeleteLoading(true);
+              await axiosInstance.delete(`/users/${deleteId}`);
+              
+              setDeleteId(null);
+              fetchUsers();
+              toast({
+                title: 'User Deleted',
+                description: 'The user has been deleted successfully.',
+                variant: 'default',
+              });
+            } catch (error) {
+              console.error("Error deleting user:", error);
+            }finally {
+              setDeleteLoading(false);
+            }
+          }}
+          deleteLoading={deleteLoading}
+          deleteId={deleteId}
+          endpoint="/users"
+          itemName={users.find(user => user._id === deleteId)?.name || "this user"}
+          onSuccess={() => {
+            setDeleteId(null);
+            fetchUsers();
+          }}
+        />
       
       </div>
     </>

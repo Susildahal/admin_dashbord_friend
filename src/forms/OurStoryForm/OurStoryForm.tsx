@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik';
 import { OurStoryFormData } from '@/types/forms';
 import { ourStoryValidationSchema } from './validation';
@@ -13,9 +13,26 @@ import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import client from '@/config/sanity';
 
+interface StorySection {
+  title: string;
+  content: string[];
+  points?: string[];
+  ending?: string;
+  subTitle?: string;
+  subPoints?: string[];
+}
+
+interface OurStoryDocument {
+  _id: string;
+  sections: StorySection[];
+}
+
 const OurStoryForm = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [ourStoryData, setOurStoryData] = useState<OurStoryDocument | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const initialValues: OurStoryFormData = {
     sections: [
@@ -30,23 +47,85 @@ const OurStoryForm = () => {
     ],
   };
 
+  // Fetch Our Story data from Sanity
+  useEffect(() => {
+    const fetchOurStoryData = async () => {
+      try {
+        setIsLoading(true);
+        const query = `*[_type == "ourstory"][0]`;
+        const data = await client.fetch(query);
+
+        if (data) {
+          setOurStoryData(data);
+          setIsEditMode(true);
+        } else {
+          setIsEditMode(false);
+        }
+      } catch (error) {
+        console.error('Error fetching Our Story data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch Our Story data',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOurStoryData();
+  }, [toast]);
+
+  const getInitialFormValues = (): OurStoryFormData => {
+    if (ourStoryData) {
+      return {
+        sections: ourStoryData.sections || [
+          {
+            title: '',
+            content: [''],
+            points: [],
+            ending: '',
+            subTitle: '',
+            subPoints: [],
+          },
+        ],
+      };
+    }
+    return initialValues;
+  };
+
   const handleSubmit = async (values: OurStoryFormData, { resetForm }: any) => {
     setIsSubmitting(true);
     try {
-      const response = await axiosInstance.post('/our-story', values);
-      
+      if (isEditMode && ourStoryData) {
+        // Update existing Our Story
+        await updateOurStory(values);
+      } else {
+        // Create new Our Story
+        await createOurStory(values);
+      }
+
       toast({
         title: 'Success!',
-        description: 'Our Story has been saved successfully.',
+        description: isEditMode
+          ? 'Our Story has been updated successfully.'
+          : 'Our Story has been created successfully.',
         variant: 'default',
       });
-      
-      resetForm();
-      console.log('Response:', response.data);
+
+      // Refresh data
+      const query = `*[_type == "ourstory"][0]`;
+      const updatedData = await client.fetch(query);
+      setOurStoryData(updatedData);
+      setIsEditMode(true);
+
+      if (!isEditMode) {
+        resetForm();
+      }
     } catch (error: any) {
       toast({
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to submit form. Please try again.',
+        description: error.message || 'Failed to submit form. Please try again.',
         variant: 'destructive',
       });
       console.error('Submission error:', error);
@@ -55,17 +134,63 @@ const OurStoryForm = () => {
     }
   };
 
+  const createOurStory = async (values: OurStoryFormData) => {
+    const payload = {
+      _type: 'ourstory',
+      sections: values.sections.map((section) => ({
+        title: section.title,
+        content: section.content || [''],
+        points: section.points || [],
+        ending: section.ending || '',
+        subTitle: section.subTitle || '',
+        subPoints: section.subPoints || [],
+      })),
+    };
+
+    await client.create(payload);
+  };
+
+  const updateOurStory = async (values: OurStoryFormData) => {
+    if (!ourStoryData) return;
+
+    const updatePayload = {
+      sections: values.sections.map((section) => ({
+        title: section.title,
+        content: section.content || [''],
+        points: section.points || [],
+        ending: section.ending || '',
+        subTitle: section.subTitle || '',
+        subPoints: section.subPoints || [],
+      })),
+    };
+
+    await client.patch(ourStoryData._id).set(updatePayload).commit();
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="w-full max-w-6xl mx-auto">
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full max-w-6xl mx-auto">
       <CardHeader>
         <CardTitle>Our Story</CardTitle>
-        <CardDescription>Create and manage story sections with dynamic content.</CardDescription>
+        <CardDescription>
+          {isEditMode ? 'Update' : 'Create'} story sections with dynamic content.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Formik
-          initialValues={initialValues}
+          initialValues={getInitialFormValues()}
           validationSchema={ourStoryValidationSchema}
           onSubmit={handleSubmit}
+          enableReinitialize
         >
           {({ errors, touched, values }) => (
             <Form className="space-y-6">
@@ -291,10 +416,10 @@ const OurStoryForm = () => {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Submitting...
+                      {isEditMode ? 'Updating...' : 'Creating...'}
                     </>
                   ) : (
-                    'Save Our Story'
+                    isEditMode ? 'Update Our Story' : 'Create Our Story'
                   )}
                 </Button>
                 <Button type="reset" variant="outline" disabled={isSubmitting}>

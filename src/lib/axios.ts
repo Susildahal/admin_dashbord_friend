@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from '@/hooks/use-toast';
 
 // Create axios instance with base configuration
 const axiosInstance = axios.create({
@@ -29,20 +30,49 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response) {
+      toast({
+        title: 'Error',
+        description: error.response.data.message || 'An error occurred. Please try again.',
+        variant: 'destructive',
+      });
+      if(error.config.method === 'get'){
+        return Promise.resolve({data: null});
+      }
+      
+      
       // Handle specific error codes
       switch (error.response.status) {
         case 401:
           // Handle unauthorized - redirect to login
-          console.error('Unauthorized access');
+         toast({
+              title: 'Unauthorized',
+              description: 'Your session has expired. Please log in again.',
+              variant: 'destructive',
+            });
+            
           break;
         case 403:
-          console.error('Forbidden access');
+         toast({
+              title: 'Forbidden',
+              description: 'You do not have permission to access this resource.',
+              variant: 'destructive',
+            });
           break;
         case 404:
-          console.error('Resource not found');
+          toast({
+              title: 'Not Found',
+              description: 'The requested resource was not found.',
+              variant: 'destructive',
+            });
+
           break;
         case 500:
-          console.error('Server error');
+          toast({
+              title: 'Server Error',
+              description: 'An error occurred on the server. Please try again later.',
+              variant: 'destructive',
+            });       
+
           break;
         default:
           console.error('An error occurred:', error.response.data);

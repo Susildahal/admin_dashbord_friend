@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik';
 import { ServicesFormData } from '@/types/forms';
 import { servicesValidationSchema } from './validation';
@@ -12,11 +13,19 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Plus, Trash2, Upload, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import client from '@/config/sanity';
+import imageUrlBuilder from '@sanity/image-url';
+
+const builder = imageUrlBuilder(client);
 
 const ServicesForm = () => {
+  const { id } = useParams<{ id?: string }>();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [serviceData, setServiceData] = useState<any>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const initialValues: ServicesFormData = {
     title: '',
@@ -32,51 +41,158 @@ const ServicesForm = () => {
     },
   };
 
+  // Fetch service data if editing
+  useEffect(() => {
+    const fetchServiceData = async () => {
+      if (!id) {
+        setIsEditMode(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const query = `*[_type == "services" && _id == $id][0]`;
+        const data = await client.fetch(query, { id });
+
+        if (data) {
+          setServiceData(data);
+          setIsEditMode(true);
+          
+          // Set image preview if exists
+          if (data.image) {
+            const imageUrl = builder.image(data.image).url();
+            setImagePreview(imageUrl);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching service:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch service data',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchServiceData();
+  }, [id, toast]);
+
+  const getInitialFormValues = (): ServicesFormData => {
+    if (serviceData && isEditMode) {
+      return {
+        title: serviceData.title || '',
+        description: serviceData.description || '',
+        image: null,
+        link: serviceData.link || '',
+        demands: serviceData.demands || [''],
+        demandText: serviceData.demandText || '',
+        references: serviceData.references || [],
+        details: serviceData.details || { intro: '', sections: [] },
+      };
+    }
+    return initialValues;
+  };
+
   const handleSubmit = async (values: ServicesFormData, { resetForm }: any) => {
     setIsSubmitting(true);
     try {
-      const formData = new FormData();
-      
-      formData.append('title', values.title);
-      formData.append('description', values.description);
-      if (values.image) {
-        formData.append('image', values.image);
+      if (isEditMode && serviceData) {
+        // Update existing service in Sanity
+        await updateService(values);
+      } else {
+        // Create new service in Sanity
+        await createService(values);
       }
-      formData.append('link', values.link);
-      formData.append('demands', JSON.stringify(values.demands));
-      if (values.demandText) {
-        formData.append('demandText', values.demandText);
-      }
-      if (values.references && values.references.length > 0) {
-        formData.append('references', JSON.stringify(values.references));
-      }
-      if (values.details) {
-        formData.append('details', JSON.stringify(values.details));
-      }
-
-      const response = await axiosInstance.post('/services', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
       
       toast({
         title: 'Success!',
-        description: 'Service has been created successfully.',
+        description: isEditMode 
+          ? 'Service has been updated successfully.' 
+          : 'Service has been created successfully.',
         variant: 'default',
       });
       
-      resetForm();
-      setImagePreview(null);
-      console.log('Response:', response.data);
+      if (!isEditMode) {
+        resetForm();
+        setImagePreview(null);
+      }
     } catch (error: any) {
       toast({
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to submit form. Please try again.',
+        description: error.message || 'Failed to submit form. Please try again.',
         variant: 'destructive',
       });
       console.error('Submission error:', error);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const createService = async (values: ServicesFormData) => {
+    let imageAsset = null;
+    
+    if (values.image) {
+      imageAsset = await client.assets.upload('image', values.image);
+    }
+
+    const payload = {
+      _type: 'services',
+      title: values.title,
+      description: values.description,
+      image: imageAsset ? {
+        _type: 'image',
+        asset: {
+          _type: 'reference',
+          _ref: imageAsset._id,
+        },
+      } : undefined,
+      link: values.link,
+      demands: values.demands.filter(d => d.trim() !== ''),
+      demandText: values.demandText || undefined,
+      references: values.references && values.references.length > 0 ? values.references : undefined,
+      details: values.details,
+    };
+
+    await client.create(payload);
+  };
+
+  const updateService = async (values: ServicesFormData) => {
+    if (!serviceData) return;
+
+    let imageAsset = null;
+    
+    // Only upload new image if provided
+    if (values.image instanceof File) {
+      imageAsset = await client.assets.upload('image', values.image);
+    }
+
+    const updatePayload: any = {
+      title: values.title,
+      description: values.description,
+      link: values.link,
+      demands: values.demands.filter(d => d.trim() !== ''),
+      demandText: values.demandText || undefined,
+      references: values.references && values.references.length > 0 ? values.references : undefined,
+      details: values.details,
+    };
+
+    // Only update image if new one was uploaded
+    if (imageAsset) {
+      updatePayload.image = {
+        _type: 'image',
+        asset: {
+          _type: 'reference',
+          _ref: imageAsset._id,
+        },
+      };
+    }
+
+    await client
+      .patch(serviceData._id)
+      .set(updatePayload)
+      .commit();
   };
 
   const handleImageChange = (
@@ -99,17 +215,32 @@ const ServicesForm = () => {
     setImagePreview(null);
   };
 
+  if (isLoading) {
+    return (
+      <Card className="w-full max-w-6xl mx-auto">
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full max-w-6xl mx-auto">
       <CardHeader>
-        <CardTitle>Services Management</CardTitle>
-        <CardDescription>Create and manage service offerings with detailed information.</CardDescription>
+        <CardTitle>{isEditMode ? 'Edit Service' : 'Create New Service'}</CardTitle>
+        <CardDescription>
+          {isEditMode 
+            ? 'Update service information and details.' 
+            : 'Create and manage service offerings with detailed information.'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Formik
-          initialValues={initialValues}
+          initialValues={getInitialFormValues()}
           validationSchema={servicesValidationSchema}
           onSubmit={handleSubmit}
+          enableReinitialize
         >
           {({ errors, touched, values, setFieldValue }) => (
             <Form className="space-y-6">

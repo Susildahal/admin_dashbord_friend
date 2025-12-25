@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik';
 import { FAQFormData } from '@/types/forms';
 import { faqValidationSchema } from './validation';
@@ -10,51 +10,84 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Plus, Trash2, Upload, X } from 'lucide-react';
+import client from '@/config/sanity';
+import imageUrlBuilder from '@sanity/image-url';
+
+interface FAQDocument {
+  _id: string;
+  image?: {
+    asset: {
+      _ref: string;
+      _type: string;
+    };
+  };
+  faq: Array<{
+    question: string;
+    answer: string;
+  }>;
+}
+
+const builder = imageUrlBuilder(client);
+
+const urlFor = (source: any) => {
+  return builder.image(source).url();
+};
 
 const FAQForm = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [newImageFile, setNewImageFile] = useState<File | null>(null);
+  const [faqData, setFaqData] = useState<FAQDocument | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const initialValues: FAQFormData = {
     image: null,
     faq: [{ question: '', answer: '' }],
   };
 
-  const handleSubmit = async (values: FAQFormData, { resetForm }: any) => {
-    setIsSubmitting(true);
-    try {
-      const formData = new FormData();
-      
-      if (values.image) {
-        formData.append('image', values.image);
-      }
-      
-      formData.append('faq', JSON.stringify(values.faq));
+  // Fetch FAQ data from Sanity
+  useEffect(() => {
+    const fetchFAQData = async () => {
+      try {
+        setIsLoading(true);
+        const query = `*[_type == "faq"][0]`;
+        const data = await client.fetch(query);
 
-      const response = await axiosInstance.post('/faq', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      
-      toast({
-        title: 'Success!',
-        description: 'FAQ has been created successfully.',
-        variant: 'default',
-      });
-      
-      resetForm();
-      setImagePreview(null);
-      console.log('Response:', response.data);
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to submit form. Please try again.',
-        variant: 'destructive',
-      });
-      console.error('Submission error:', error);
-    } finally {
-      setIsSubmitting(false);
+        if (data) {
+          setFaqData(data);
+          setIsEditMode(true);
+          if (data.image?.asset) {
+            const imageUrl = urlFor(data.image);
+            setImagePreview(imageUrl);
+          }
+        } else {
+          setIsEditMode(false);
+        }
+      } catch (error) {
+        console.error('Error fetching FAQ data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch FAQ data',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFAQData();
+  }, [toast]);
+
+  const getInitialFormValues = (): FAQFormData => {
+    if (faqData) {
+      return {
+        image: null,
+        faq: faqData.faq || [{ question: '', answer: '' }],
+      };
     }
+    return initialValues;
   };
 
   const handleImageChange = (
@@ -63,6 +96,7 @@ const FAQForm = () => {
   ) => {
     const file = event.currentTarget.files?.[0];
     if (file) {
+      setNewImageFile(file);
       setFieldValue('image', file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -74,20 +108,120 @@ const FAQForm = () => {
 
   const removeImage = (setFieldValue: any) => {
     setFieldValue('image', null);
+    setNewImageFile(null);
     setImagePreview(null);
   };
+
+  const handleSubmit = async (values: FAQFormData, { resetForm }: any) => {
+    setIsSubmitting(true);
+    try {
+      if (isEditMode && faqData) {
+        // Update existing FAQ
+        await updateFAQ(values);
+      } else {
+        // Create new FAQ
+        await createFAQ(values);
+      }
+
+      toast({
+        title: 'Success!',
+        description: isEditMode
+          ? 'FAQ has been updated successfully.'
+          : 'FAQ has been created successfully.',
+        variant: 'default',
+      });
+
+      // Refresh data
+      const query = `*[_type == "faq"][0]`;
+      const updatedData = await client.fetch(query);
+      setFaqData(updatedData);
+      setIsEditMode(true);
+
+      if (!isEditMode) {
+        resetForm();
+        setImagePreview(null);
+        setNewImageFile(null);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to submit form. Please try again.',
+        variant: 'destructive',
+      });
+      console.error('Submission error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const createFAQ = async (values: FAQFormData) => {
+    const faqPayload: any = {
+      _type: 'faq',
+      faq: values.faq,
+    };
+
+    if (newImageFile) {
+      const asset = await client.assets.upload('image', newImageFile);
+      faqPayload.image = {
+        _type: 'image',
+        asset: {
+          _type: 'reference',
+          _ref: asset._id,
+        },
+      };
+    }
+
+    await client.create(faqPayload);
+  };
+
+  const updateFAQ = async (values: FAQFormData) => {
+    if (!faqData) return;
+
+    const updatePayload: any = {
+      faq: values.faq,
+    };
+
+    if (newImageFile) {
+      const asset = await client.assets.upload('image', newImageFile);
+      updatePayload.image = {
+        _type: 'image',
+        asset: {
+          _type: 'reference',
+          _ref: asset._id,
+        },
+      };
+    }
+
+    await client
+      .patch(faqData._id)
+      .set(updatePayload)
+      .commit();
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle>FAQ Management</CardTitle>
-        <CardDescription>Create and manage frequently asked questions with an image.</CardDescription>
+        <CardDescription>
+          {isEditMode ? 'Update' : 'Create'} frequently asked questions with an image.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Formik
-          initialValues={initialValues}
+          initialValues={getInitialFormValues()}
           validationSchema={faqValidationSchema}
           onSubmit={handleSubmit}
+          enableReinitialize
         >
           {({ errors, touched, setFieldValue, values }) => (
             <Form className="space-y-6">
@@ -239,10 +373,10 @@ const FAQForm = () => {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Submitting...
+                      {isEditMode ? 'Updating...' : 'Creating...'}
                     </>
                   ) : (
-                    'Submit FAQ'
+                    isEditMode ? 'Update FAQ' : 'Create FAQ'
                   )}
                 </Button>
                 <Button type="reset" variant="outline" disabled={isSubmitting}>

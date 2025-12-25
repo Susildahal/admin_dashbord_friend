@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { BannerFormData } from '@/types/forms';
 import { bannerValidationSchema } from './validation';
@@ -9,33 +9,97 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import client from '@/config/sanity';
+
+interface BannerDocument {
+  _id: string;
+  title?: string;
+  subTitle?: string;
+}
 
 const BannerForm = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [bannerData, setBannerData] = useState<BannerDocument | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const initialValues: BannerFormData = {
     title: '',
     subTitle: '',
   };
 
+  // Fetch Banner data from Sanity
+  useEffect(() => {
+    const fetchBannerData = async () => {
+      try {
+        setIsLoading(true);
+        const query = `*[_type == "bannerData"][0]`;
+        const data = await client.fetch(query);
+
+        if (data) {
+          setBannerData(data);
+          setIsEditMode(true);
+        } else {
+          setIsEditMode(false);
+        }
+      } catch (error) {
+        console.error('Error fetching Banner data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch Banner data',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBannerData();
+  }, [toast]);
+
+  const getInitialFormValues = (): BannerFormData => {
+    if (bannerData) {
+      return {
+        title: bannerData.title || '',
+        subTitle: bannerData.subTitle || '',
+      };
+    }
+    return initialValues;
+  };
+
   const handleSubmit = async (values: BannerFormData, { resetForm }: any) => {
     setIsSubmitting(true);
     try {
-      const response = await axiosInstance.post('/banner', values);
-      
+      if (isEditMode && bannerData) {
+        // Update existing Banner
+        await updateBanner(values);
+      } else {
+        // Create new Banner
+        await createBanner(values);
+      }
+
       toast({
         title: 'Success!',
-        description: 'Banner has been saved successfully.',
+        description: isEditMode
+          ? 'Banner has been updated successfully.'
+          : 'Banner has been created successfully.',
         variant: 'default',
       });
-      
-      resetForm();
-      console.log('Response:', response.data);
+
+      // Refresh data
+      const query = `*[_type == "bannerData"][0]`;
+      const updatedData = await client.fetch(query);
+      setBannerData(updatedData);
+      setIsEditMode(true);
+
+      if (!isEditMode) {
+        resetForm();
+      }
     } catch (error: any) {
       toast({
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to submit form. Please try again.',
+        description: error.message || 'Failed to submit form. Please try again.',
         variant: 'destructive',
       });
       console.error('Submission error:', error);
@@ -44,17 +108,51 @@ const BannerForm = () => {
     }
   };
 
+  const createBanner = async (values: BannerFormData) => {
+    const payload = {
+      _type: 'bannerData',
+      title: values.title || undefined,
+      subTitle: values.subTitle || undefined,
+    };
+
+    await client.create(payload);
+  };
+
+  const updateBanner = async (values: BannerFormData) => {
+    if (!bannerData) return;
+
+    const updatePayload = {
+      title: values.title || undefined,
+      subTitle: values.subTitle || undefined,
+    };
+
+    await client.patch(bannerData._id).set(updatePayload).commit();
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Banner Settings</CardTitle>
-        <CardDescription>Configure your banner title and subtitle.</CardDescription>
+        <CardDescription>
+          {isEditMode ? 'Update' : 'Configure'} your banner title and subtitle.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Formik
-          initialValues={initialValues}
+          initialValues={getInitialFormValues()}
           validationSchema={bannerValidationSchema}
           onSubmit={handleSubmit}
+          enableReinitialize
         >
           {({ errors, touched }) => (
             <Form className="space-y-6">
@@ -90,10 +188,10 @@ const BannerForm = () => {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
+                      {isEditMode ? 'Updating...' : 'Creating...'}
                     </>
                   ) : (
-                    'Save Banner'
+                    isEditMode ? 'Update Banner' : 'Create Banner'
                   )}
                 </Button>
                 <Button type="reset" variant="outline" disabled={isSubmitting}>

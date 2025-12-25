@@ -2,9 +2,9 @@ import * as Yup from 'yup';
 
 export const faqValidationSchema = Yup.object().shape({
   image: Yup.mixed()
-    .required('Image is required')
+    .nullable()
     .test('fileType', 'Only image files are allowed', (value) => {
-      if (!value) return false;
+      if (!value) return true;
       if (value instanceof File) {
         return ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'].includes(value.type);
       }

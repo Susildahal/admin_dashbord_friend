@@ -1,10 +1,16 @@
 import React from "react";
+import axiosInstance from "@/lib/axios";
 interface DeleteConfirmationProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   itemName: string;
+  deleteId: string | null;
+  endpoint: string;
+  deleteLoading: boolean;
+  onSuccess: () => void;
 }
+
 
 import {
   Dialog,
@@ -14,12 +20,28 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+
+
 const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({
   isOpen,
   onClose,
   onConfirm,
   itemName,
+  deleteId,
+  endpoint,
+  onSuccess,
+  deleteLoading,
 }) => {
+
+  const deleteUser = async () => {
+    try {
+      await axiosInstance.delete(`${endpoint}/${deleteId}`);
+      onSuccess();
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent>
@@ -39,8 +61,9 @@ const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({
           <button
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
             onClick={onConfirm}
+            disabled={deleteLoading}
           >
-            Delete
+            {deleteLoading ? "Deleting..." : "Delete"}
           </button>
         </div>
       </DialogContent>
