@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik';
 import { ServicesFormData } from '@/types/forms';
-import { servicesValidationSchema } from './validation';
-import axiosInstance from '@/lib/axios';
+// import { getServicesValidationSchema } from './validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +17,11 @@ import imageUrlBuilder from '@sanity/image-url';
 
 const builder = imageUrlBuilder(client);
 
+// Helper function to check if value is a File
+const isFile = (value: any): value is File => {
+  return value instanceof File;
+};
+
 const ServicesForm = () => {
   const { id } = useParams<{ id?: string }>();
   const { toast } = useToast();
@@ -26,6 +30,7 @@ const ServicesForm = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [serviceData, setServiceData] = useState<any>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [originalImageAsset, setOriginalImageAsset] = useState<any>(null);
 
   const initialValues: ServicesFormData = {
     title: '',
@@ -51,12 +56,23 @@ const ServicesForm = () => {
 
       try {
         setIsLoading(true);
-        const query = `*[_type == "services" && _id == $id][0]`;
+        const query = `*[_type == "services" && _id == $id][0]{
+          ...,
+          image {
+            ...,
+            asset->
+          }
+        }`;
         const data = await client.fetch(query, { id });
 
         if (data) {
           setServiceData(data);
           setIsEditMode(true);
+          
+          // Store original image asset for reference
+          if (data.image?.asset) {
+            setOriginalImageAsset(data.image.asset);
+          }
           
           // Set image preview if exists
           if (data.image) {
@@ -84,9 +100,11 @@ const ServicesForm = () => {
       return {
         title: serviceData.title || '',
         description: serviceData.description || '',
-        image: null,
+        image: serviceData.image ? serviceData.image : null, // Keep original image object
         link: serviceData.link || '',
-        demands: serviceData.demands || [''],
+        demands: serviceData.demands && serviceData.demands.length > 0 
+          ? serviceData.demands 
+          : [''],
         demandText: serviceData.demandText || '',
         references: serviceData.references || [],
         details: serviceData.details || { intro: '', sections: [] },
@@ -97,34 +115,76 @@ const ServicesForm = () => {
 
   const handleSubmit = async (values: ServicesFormData, { resetForm }: any) => {
     setIsSubmitting(true);
+    
     try {
-      if (isEditMode && serviceData) {
+      if (isEditMode && serviceData && serviceData._id) {
         // Update existing service in Sanity
-        await updateService(values);
+        try {
+          console.log('Calling updateService...');
+          await updateService(values);
+          toast({
+            title: 'Success!',
+            description: 'Service has been updated successfully.',
+            variant: 'default',
+          });
+          
+          // Refresh data after update
+          if (id) {
+            const query = `*[_type == "services" && _id == $id][0]{
+              ...,
+              image {
+                ...,
+                asset->
+              }
+            }`;
+            const updatedData = await client.fetch(query, { id });
+            setServiceData(updatedData);
+            
+            // Update image preview
+            if (updatedData?.image) {
+              const imageUrl = builder.image(updatedData.image).url();
+              setImagePreview(imageUrl);
+              setOriginalImageAsset(updatedData.image.asset);
+            }
+          }
+        } catch (err: any) {
+          console.error('Update error:', err);
+          toast({
+            title: 'Update Error',
+            description: err?.message || 'Failed to update service.',
+            variant: 'destructive',
+          });
+        }
       } else {
         // Create new service in Sanity
-        await createService(values);
-      }
-      
-      toast({
-        title: 'Success!',
-        description: isEditMode 
-          ? 'Service has been updated successfully.' 
-          : 'Service has been created successfully.',
-        variant: 'default',
-      });
-      
-      if (!isEditMode) {
-        resetForm();
-        setImagePreview(null);
+        try {
+          console.log('Calling createService...');
+          await createService(values);
+          toast({
+            title: 'Success!',
+            description: 'Service has been created successfully.',
+            variant: 'default',
+          });
+          
+          resetForm();
+          setImagePreview(null);
+          setOriginalImageAsset(null);
+        } catch (err: any) {
+          console.error('Create error:', err);
+          toast({
+            title: 'Create Error',
+            description: err?.message || 'Failed to create service.',
+            variant: 'destructive',
+          });
+        }
       }
     } catch (error: any) {
+      console.error('Submission error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to submit form. Please try again.',
         variant: 'destructive',
       });
-      console.error('Submission error:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -133,21 +193,15 @@ const ServicesForm = () => {
   const createService = async (values: ServicesFormData) => {
     let imageAsset = null;
     
-    if (values.image) {
+    // Only upload image if it's a new File
+    if (isFile(values.image)) {
       imageAsset = await client.assets.upload('image', values.image);
     }
 
-    const payload = {
+    const payload: any = {
       _type: 'services',
       title: values.title,
       description: values.description,
-      image: imageAsset ? {
-        _type: 'image',
-        asset: {
-          _type: 'reference',
-          _ref: imageAsset._id,
-        },
-      } : undefined,
       link: values.link,
       demands: values.demands.filter(d => d.trim() !== ''),
       demandText: values.demandText || undefined,
@@ -155,17 +209,36 @@ const ServicesForm = () => {
       details: values.details,
     };
 
-    await client.create(payload);
+    // Add image if uploaded
+    if (imageAsset) {
+      payload.image = {
+        _type: 'image',
+        asset: {
+          _type: 'reference',
+          _ref: imageAsset._id,
+        },
+      };
+    }
+
+    return await client.create(payload);
   };
 
   const updateService = async (values: ServicesFormData) => {
-    if (!serviceData) return;
+    if (!serviceData) {
+      throw new Error('No service data available for update');
+    }
+
+    console.log('Updating service with ID:', serviceData._id);
+    console.log('Image value:', values.image);
+    console.log('Is File:', isFile(values.image));
 
     let imageAsset = null;
     
-    // Only upload new image if provided
-    if (values.image instanceof File) {
+    // Check if a new image file was uploaded
+    if (isFile(values.image)) {
+      console.log('Uploading new image...');
       imageAsset = await client.assets.upload('image', values.image);
+      console.log('Image uploaded:', imageAsset._id);
     }
 
     const updatePayload: any = {
@@ -178,8 +251,9 @@ const ServicesForm = () => {
       details: values.details,
     };
 
-    // Only update image if new one was uploaded
+    // Handle image update
     if (imageAsset) {
+      // New image uploaded
       updatePayload.image = {
         _type: 'image',
         asset: {
@@ -187,12 +261,26 @@ const ServicesForm = () => {
           _ref: imageAsset._id,
         },
       };
+    } else if (values.image === null && originalImageAsset) {
+      // Image was removed by user
+      updatePayload.image = null;
     }
+    // If values.image is not a File and not null, it means keep the existing image
 
-    await client
-      .patch(serviceData._id)
-      .set(updatePayload)
-      .commit();
+    console.log('Update payload:', updatePayload);
+
+    try {
+      const result = await client
+        .patch(serviceData._id)
+        .set(updatePayload)
+        .commit();
+      
+      console.log('Sanity update result:', result);
+      return result;
+    } catch (error) {
+      console.error('Sanity update error:', error);
+      throw error;
+    }
   };
 
   const handleImageChange = (
@@ -213,6 +301,7 @@ const ServicesForm = () => {
   const removeImage = (setFieldValue: any) => {
     setFieldValue('image', null);
     setImagePreview(null);
+    // Do not clear originalImageAsset here, so we know to unset it in updateService
   };
 
   if (isLoading) {
@@ -238,11 +327,11 @@ const ServicesForm = () => {
       <CardContent>
         <Formik
           initialValues={getInitialFormValues()}
-          validationSchema={servicesValidationSchema}
+          // validationSchema={getServicesValidationSchema()}
           onSubmit={handleSubmit}
-          enableReinitialize
+          enableReinitialize={true}
         >
-          {({ errors, touched, values, setFieldValue }) => (
+          {({ errors, touched, values, setFieldValue, resetForm }) => (
             <Form className="space-y-6">
               <Tabs defaultValue="basic" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
@@ -330,6 +419,11 @@ const ServicesForm = () => {
                       </div>
                     )}
                     <ErrorMessage name="image" component="p" className="text-sm text-red-500" />
+                    {isEditMode && !isFile(values.image) && values.image && (
+                      <p className="text-sm text-muted-foreground">
+                        Current image will be kept. Upload a new image to replace it.
+                      </p>
+                    )}
                   </div>
                 </TabsContent>
 
@@ -593,13 +687,18 @@ const ServicesForm = () => {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Submitting...
+                      {isEditMode ? 'Updating...' : 'Creating...'}
                     </>
                   ) : (
-                    'Create Service'
+                    isEditMode ? 'Update Service' : 'Create Service'
                   )}
                 </Button>
-                <Button type="reset" variant="outline" disabled={isSubmitting}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  disabled={isSubmitting}
+                  onClick={() => resetForm()}
+                >
                   Reset
                 </Button>
               </div>

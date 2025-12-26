@@ -16,8 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useTheme } from '@/hooks/useTheme';
-import { set } from 'date-fns';
-import { Handle } from 'vaul';
+
 
 const routeNames: Record<string, string> = {
   '/': 'Dashboard',
@@ -65,7 +64,7 @@ const [mee ,setMee] = useState(null);
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get('/users/me');
-        setMee(response.data.data);
+        setMee(response.data.data.user);
       } catch (error) {
         // Handle error
       }
@@ -73,7 +72,15 @@ const [mee ,setMee] = useState(null);
 
     fetchData();
   }, []);
-
+  const HandleLogout = async () => {
+    try {
+      localStorage.removeItem('accessToken');
+      window.location.href = '/login';
+    }
+    catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   return (
     <header className="h-16 border-b   border-border bg-background flex items-center justify-between px-4 gap-4">
@@ -126,10 +133,11 @@ const [mee ,setMee] = useState(null);
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium">{mee?.email?.split('@')[0] || 'Admin'}</p>
                 <p className="text-xs text-muted-foreground">{mee?.email}</p>
+                      <p className="text-xs text-muted-foreground">{mee?.role}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={Handle} className="text-destructive cursor-pointer">
+            <DropdownMenuItem onClick={HandleLogout} className="text-destructive cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
             </DropdownMenuItem>
