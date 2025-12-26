@@ -26,7 +26,7 @@ const quickActions = [
   { title: 'Update Banner', description: 'Edit hero section slides and content', icon: Image, href: '/content/banner' },
   { title: 'Manage Testimonials', description: 'Add or edit united voices entries', icon: Quote, href: '/content/united-voices' },
   { title: 'View Contacts', description: 'Review form submissions and inquiries', icon: Users, href: '/contacts' },
-  { title: 'Update Fight Content', description: 'Edit the fight section content', icon: Sword, href: '/content/the-fight' },
+  // { title: 'Update Fight Content', description: 'Edit the fight section content', icon: Sword, href: '/content/the-fight' },
 ];
 
 export default function Dashboard() {
@@ -100,19 +100,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div>
-        <h2 className="text-xl font-display font-semibold mb-4 text-[#ca7b28]">
-          Recent Activity
-        </h2>
-        <Card className="border border-[#ca7b28]/30">
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">
-              Activity tracking will be available once Sanity.io is connected.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+    
     </div>
   );
 }
