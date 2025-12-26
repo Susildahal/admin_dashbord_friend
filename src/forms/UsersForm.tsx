@@ -170,7 +170,7 @@ const Page = () => {
       
       // Fetch all users for PDF
       const response = await axiosInstance.get('/users/user-list?limit=10000');
-      const allUsers = response.data.data || [];
+      const allUsers = response.data.data?.users || [];
 
       if (allUsers.length === 0) {
         alert('No users found to download');
@@ -278,7 +278,7 @@ const Page = () => {
       setDownloading(true);
       // Fetch all users for CSV
       const response = await axiosInstance.get('/users/user-list?limit=10000');
-      const allUsers = response.data.data || [];
+      const allUsers = response.data.data?.users || [];
 
       if (allUsers.length === 0) {
         alert('No users found to download');

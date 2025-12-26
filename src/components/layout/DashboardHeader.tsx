@@ -5,7 +5,6 @@ import axiosInstance from '@/lib/axios';
 import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,7 +58,8 @@ export function DashboardHeader() {
   };
 
   const breadcrumbs = getBreadcrumbs();
-const [mee ,setMee] = useState(null);
+  const [mee, setMee] = useState(null);
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -72,6 +72,7 @@ const [mee ,setMee] = useState(null);
 
     fetchData();
   }, []);
+
   const HandleLogout = async () => {
     try {
       localStorage.removeItem('accessToken');
@@ -83,7 +84,7 @@ const [mee ,setMee] = useState(null);
   };
 
   return (
-    <header className="h-16 border-b   border-border bg-background flex items-center justify-between px-4 gap-4">
+    <header className="sticky top-0 z-50 h-16 border-b border-border bg-background flex items-center justify-between px-4 gap-4 shadow-sm">
       <div className="flex items-center gap-4">
         <SidebarTrigger className="h-8 w-8" />
         
@@ -100,9 +101,9 @@ const [mee ,setMee] = useState(null);
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-       
+      {/* <Button>  </Button> */}
 
+      <div className="flex items-center gap-3">
         <Button
           variant="ghost"
           size="icon"
@@ -133,7 +134,7 @@ const [mee ,setMee] = useState(null);
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium">{mee?.email?.split('@')[0] || 'Admin'}</p>
                 <p className="text-xs text-muted-foreground">{mee?.email}</p>
-                      <p className="text-xs text-muted-foreground">{mee?.role}</p>
+                <p className="text-xs text-muted-foreground">{mee?.role}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

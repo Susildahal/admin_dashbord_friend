@@ -178,7 +178,7 @@ const OurStoryForm = () => {
   }
 
   return (
-    <Card className="w-full max-w-6xl mx-auto">
+    <Card className="w-full   max-w-6xl mx-auto">
       <CardHeader>
         <CardTitle>Our Story</CardTitle>
         <CardDescription>
@@ -411,21 +411,24 @@ const OurStoryForm = () => {
               </FieldArray>
 
               {/* Submit Buttons */}
-              <div className="flex gap-4">
-                <Button type="submit" disabled={isSubmitting} className="flex-1" variant="theme">
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {isEditMode ? 'Updating...' : 'Creating...'}
-                    </>
-                  ) : (
-                    isEditMode ? 'Update Our Story' : 'Create Our Story'
-                  )}
-                </Button>
-                <Button type="reset" variant="outline" disabled={isSubmitting}>
-                  Reset
-                </Button>
-              </div>
+            <div className="w-full p-4 bg-white shadow-md flex gap-4">
+  <Button 
+    type="submit" 
+    disabled={isSubmitting} 
+    className="flex-1" 
+    variant="theme"
+  >
+    {isSubmitting ? (
+      <>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        {isEditMode ? 'Updating...' : 'Creating...'}
+      </>
+    ) : (
+      isEditMode ? 'Update Our Story' : 'Create Our Story'
+    )}
+  </Button>
+</div>
+
             </Form>
           )}
         </Formik>

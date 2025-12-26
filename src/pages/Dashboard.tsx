@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 const stats = [
   { title: 'Banner Slides', icon: Image, href: '/content/banner', description: 'Active hero slides' },
   { title: 'Our Story', icon: BookOpen, href: '/content/our-story', description: 'Story sections' },
-  { title: 'Services', icon: Wrench, href: '/content/services', description: 'Service offerings' },
+  // { title: 'Services', icon: Wrench, href: '/content/services', description: 'Service offerings' },
   { title: 'Testimonials', icon: Quote, href: '/content/united-voices', description: 'United voices' },
   { title: 'Winners', icon: Trophy, href: '/content/real-winners', description: 'Success stories' },
   { title: 'FAQs', icon: HelpCircle, href: '/content/faqs', description: 'Questions answered' },
