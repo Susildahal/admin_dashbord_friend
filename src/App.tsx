@@ -6,11 +6,14 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { RealWinnersForm, UnitedVoicesForm ,FAQForm, SettingForm ,OurStoryForm ,ContactForm ,UserForm  } from "./forms";
+import { RealWinnersForm, UnitedVoicesForm ,FAQForm, SettingForm ,OurStoryForm ,ContactForm ,UserForm ,WayCardsForm} from "./forms";
 import {BannerForm, ServicesForm} from "./forms";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/forgotpassword"
+import VerifyOTP from "./pages/VerifyOTP";
+import ForgotPassword from "./pages/forgotpassword";
 
 const queryClient = new QueryClient();
 
@@ -125,6 +128,57 @@ const App = () => (
                     </ProtectedRoute>
                   }
                 />
+                  <Route
+                  path="/content/users"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <UserForm />
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                  <Route
+                  path="/content/Old"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                       <WayCardsForm/>
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                 <Route
+                  path="/forgotpassword"
+                  element={
+                    <ProtectedRoute>
+                   
+                       <ForgotPassword/>
+                    
+                    </ProtectedRoute>
+                  }
+                />
+                  <Route
+                  path="/otp"
+                  element={
+                    <ProtectedRoute>
+                     
+                      <VerifyOTP/>
+                    
+                    </ProtectedRoute>
+                  }
+                />
+                  <Route
+                  path="/resetpassword"
+                  element={
+                    <ProtectedRoute>
+                     
+                      <ResetPassword/>
+                    
+                    </ProtectedRoute>
+                  }
+                />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

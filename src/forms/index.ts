@@ -8,7 +8,7 @@ export { default as SettingForm } from './SettingForm/SettingForm';
 export { default as UnitedVoicesForm } from './UnitedVoicesForm/UnitedVoicesForm';
 export { default as BannerForm } from './BannerForm/BannerForm';
 export { default as UserForm } from './UsersForm';
-
+export { default as WayCardsForm } from './whyFormCard/whyformcard';
 // Export validation schemas
 export { contactValidationSchema } from './ContactForm/validation';
 export { faqValidationSchema } from './FAQForm/validation';

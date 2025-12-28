@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,12 +12,13 @@ import {
 } from '@/components/ui/card'
 import {Eye , EyeOff} from 'lucide-react'
 import { z } from 'zod'
+import axiosInstance from '@/lib/axios'
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 })
-import axiosInstance from '@/lib/axios'
+
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -61,7 +62,7 @@ export default function Login() {
     setIsLoading(true)
     try {
       const response = await axiosInstance.post('/users/login', { email, password })
-   const token = response.data.data.token;
+      const token = response.data.data.token;
       localStorage.setItem('authToken', token);
       if(response.status === 200){
         navigate(from, { replace: true })
@@ -143,6 +144,11 @@ export default function Login() {
                 <p className="text-xs text-destructive">{errors.password}</p>
               )}
             </div>
+
+            {/* Forgot Password Link */}
+            <Link to="/forgotpassword" className="text-xs text-muted-foreground hover:text-foreground">
+              Forgot password?
+            </Link>
 
             {/* Submit */}
             <Button

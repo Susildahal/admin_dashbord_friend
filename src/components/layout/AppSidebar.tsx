@@ -53,6 +53,7 @@ const contentItems = [
   { title: 'Real Winners', url: '/content/real-winners', icon: Trophy },
   { title: 'FAQs', url: '/content/faqs', icon: HelpCircle },
   { title: 'Create a New account', url: '/content/users', icon: Users },
+  { title: 'Old Vs New', url: '/content/old', icon: Users },
 ];
 
 const otherNavItems = [
