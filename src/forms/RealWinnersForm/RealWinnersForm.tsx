@@ -454,7 +454,13 @@ const RealWinnersForm = () => {
               </div>
 
               {/* Submit Buttons */}
-              <div className="flex gap-4">
+            
+            </Form>
+          )}
+        </Formik>
+      </CardContent>
+    </Card>
+      <div className="fixed bottom-1 right-0">
                 <Button type="submit" disabled={isSubmitting} className="flex-1" variant="theme">
                   {isSubmitting ? (
                     <>
@@ -465,15 +471,8 @@ const RealWinnersForm = () => {
                     isEditMode ? 'Update Real Winners' : 'Create Real Winners'
                   )}
                 </Button>
-                <Button type="reset" variant="outline" disabled={isSubmitting}>
-                  Reset
-                </Button>
+               
               </div>
-            </Form>
-          )}
-        </Formik>
-      </CardContent>
-    </Card>
     </div>
   );
 };

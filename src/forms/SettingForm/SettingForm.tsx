@@ -223,6 +223,7 @@ const SettingForm = () => {
   };
 
   return (
+    <div>
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle>Site Settings</CardTitle>
@@ -479,7 +480,14 @@ const SettingForm = () => {
                 </div>
 
                 {/* Submit Buttons */}
-                <div className="flex gap-4">
+              
+              </Form>
+            )}
+          </Formik>
+        )}
+      </CardContent>
+    </Card>
+      <div className="fixed bottom-1 right-1">
                   <Button type="submit" disabled={isSubmitting} className="flex-1" variant="theme">
                     {isSubmitting ? (
                       <>
@@ -490,16 +498,9 @@ const SettingForm = () => {
                       'Save Settings'
                     )}
                   </Button>
-                  <Button type="reset" variant="outline" disabled={isSubmitting}>
-                    Reset
-                  </Button>
+                
                 </div>
-              </Form>
-            )}
-          </Formik>
-        )}
-      </CardContent>
-    </Card>
+    </div>
   );
 };
 

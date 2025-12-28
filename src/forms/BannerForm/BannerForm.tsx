@@ -194,9 +194,7 @@ const BannerForm = () => {
                     isEditMode ? 'Update Banner' : 'Create Banner'
                   )}
                 </Button>
-                <Button type="reset" variant="outline" disabled={isSubmitting}>
-                  Reset
-                </Button>
+              
               </div>
             </Form>
           )}

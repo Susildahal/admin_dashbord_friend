@@ -300,7 +300,7 @@ const UnitedVoicesForm = () => {
   }
 
   return (
-    <div  className=' flex gap-2'>
+    <div  className=' flex gap-4'>
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle>United Voices</CardTitle>
