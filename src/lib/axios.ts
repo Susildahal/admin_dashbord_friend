@@ -30,6 +30,22 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response) {
+      // Handle 401 FIRST before any other logic
+      if (error.response.status === 401) {
+        toast({
+          title: 'Unauthorized',
+          description: 'Your session has expired. Please log in again.',
+          variant: 'destructive',
+        });
+        // Clear auth token
+        localStorage.removeItem('authToken');
+        // Redirect to /auth
+        setTimeout(() => {
+          window.location.href = '/auth';
+        }, 100);
+        return Promise.reject(error);
+      }
+
       toast({
         title: 'Error',
         description: error.response.data.message || 'An error occurred. Please try again.',
@@ -43,16 +59,7 @@ axiosInstance.interceptors.response.use(
       // Handle specific error codes
       switch (error.response.status) {
         case 401:
-          // Handle unauthorized - redirect to login
-          toast({
-            title: 'Unauthorized',
-            description: 'Your session has expired. Please log in again.',
-            variant: 'destructive',
-          });
-          // Robust redirect to /auth
-          if (typeof window !== 'undefined' && window.location.pathname !== '/auth') {
-            window.location.replace('/auth');
-          }
+          // Already handled above
           break;
         case 403:
          toast({
