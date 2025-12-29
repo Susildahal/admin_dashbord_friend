@@ -44,12 +44,15 @@ axiosInstance.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           // Handle unauthorized - redirect to login
-         toast({
-              title: 'Unauthorized',
-              description: 'Your session has expired. Please log in again.',
-              variant: 'destructive',
-            });
-            
+          toast({
+            title: 'Unauthorized',
+            description: 'Your session has expired. Please log in again.',
+            variant: 'destructive',
+          });
+          // Redirect to /auth
+          if (typeof window !== 'undefined') {
+            window.location.href = '/auth';
+          }
           break;
         case 403:
          toast({
