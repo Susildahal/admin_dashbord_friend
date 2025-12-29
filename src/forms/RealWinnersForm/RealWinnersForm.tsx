@@ -460,7 +460,7 @@ const RealWinnersForm = () => {
         </Formik>
       </CardContent>
     </Card>
-      <div className="fixed bottom-1 right-0">
+      <div className="fixed bottom-1 right-1">
                 <Button type="submit" disabled={isSubmitting} className="flex-1" variant="theme">
                   {isSubmitting ? (
                     <>

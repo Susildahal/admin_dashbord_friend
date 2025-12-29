@@ -78,7 +78,14 @@ export default function Login() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md border-border">
-        <CardHeader className="space-y-1 text-center">
+        <CardHeader className="space-y-1 ">
+          <div className=' flex justify-center'>
+          <img
+          src='./logo.svg'
+          className='h-30 w-30'
+          />
+          </div>
+
           <div className="mb-4">
             <h1 className="font-display text-2xl font-bold tracking-tight">
               FRIENDS UNITED
@@ -88,13 +95,7 @@ export default function Login() {
             </p>
           </div>
 
-          <CardTitle className="text-xl font-display">
-            Welcome back
-          </CardTitle>
-
-          <CardDescription>
-            Enter your credentials to access the dashboard
-          </CardDescription>
+         
         </CardHeader>
 
         <CardContent>

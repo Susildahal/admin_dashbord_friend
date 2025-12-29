@@ -79,7 +79,7 @@ const VerifyOTP = () => {
     
     setIsLoading(true);
     try {
-      const response = await axiosInstance.post("/auth/verify-reset-otp", { 
+      const response = await axiosInstance.post("/users/verifyOtp", { 
         email, 
         otp: otpValue 
       });
@@ -89,7 +89,7 @@ const VerifyOTP = () => {
         description: "You can now reset your password.",
       });
 
-      navigate("/reset-password", { state: { email, otp: otpValue } });
+      navigate("/resetpassword", { state: { email, otp: otpValue } });
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -106,7 +106,7 @@ const VerifyOTP = () => {
     
     setIsResending(true);
     try {
-      await axiosInstance.post("/auth/forgot-password", { email });
+      await axiosInstance.post("/users/forgot-password", { email });
 
       toast({
         title: "OTP Resent",
@@ -128,7 +128,7 @@ const VerifyOTP = () => {
   };
 
   const handleGoBack = () => {
-    navigate("/forgot-password");
+    navigate("/forgotpassword");
   };
 
   if (!email) return null;

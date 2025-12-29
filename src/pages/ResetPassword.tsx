@@ -45,22 +45,22 @@ const ResetPassword = () => {
   });
 
   // Redirect if no email/otp in state
-//   useState(() => {
-//     if (!email || !otp) {
-//       toast({
-//         variant: "destructive",
-//         title: "Session Expired",
-//         description: "Please start the password reset process again.",
-//       });
-//       navigate("/forgotpassword");
-//     }
-//   });
+  useState(() => {
+    if (!email || !otp) {
+      toast({
+        variant: "destructive",
+        title: "Session Expired",
+        description: "Please start the password reset process again.",
+      });
+      navigate("/forgotpassword");
+    }
+  });
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     setIsLoading(true);
     try {
       // TODO: Replace with your actual endpoint
-      await axiosInstance.post("/auth/reset-password", {
+      await axiosInstance.post("/users/reset-password", {
         email,
         otp,
         newPassword: data.password,
@@ -74,7 +74,7 @@ const ResetPassword = () => {
 
       // Redirect to login after 2 seconds
       setTimeout(() => {
-        navigate("/");
+        navigate("/auth");
       }, 2000);
     } catch (error: any) {
       toast({

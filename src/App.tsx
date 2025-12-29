@@ -11,7 +11,7 @@ import {BannerForm, ServicesForm} from "./forms";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
-import ResetPassword from "./pages/forgotpassword"
+import ResetPassword from "./pages/ResetPassword"
 import VerifyOTP from "./pages/VerifyOTP";
 import ForgotPassword from "./pages/forgotpassword";
 

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik';
+import { useState, useEffect, useRef } from 'react';
+import { Formik, Form, Field, FieldArray, ErrorMessage, FormikHelpers } from 'formik';
 import { UnitedVoicesFormData } from '@/types/forms';
 import { unitedVoicesValidationSchema } from './validation';
 import axiosInstance from '@/lib/axios';
@@ -17,6 +17,12 @@ import imageUrlBuilder from '@sanity/image-url';
 interface VoiceItem {
   heading: string;
   subHeading: string;
+}
+
+interface RevivalData {
+  title?: string;
+  description?: string;
+  pointList?: string[];
 }
 
 interface UnitedVoicesDocument {
@@ -37,6 +43,15 @@ interface UnitedVoicesDocument {
     };
   };
   voices?: VoiceItem[];
+  revival?: RevivalData;
+}
+
+interface UnitedVoicesFormDataWithRevival extends UnitedVoicesFormData {
+  revival?: {
+    title?: string;
+    description?: string;
+    pointList?: string[];
+  };
 }
 
 const builder = imageUrlBuilder(client);
@@ -55,14 +70,20 @@ const UnitedVoicesForm = () => {
   const [newBackImage, setNewBackImage] = useState<File | null>(null);
   const [unitedVoicesData, setUnitedVoicesData] = useState<UnitedVoicesDocument | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const formikRef = useRef<any>(null);
 
-  const initialValues: UnitedVoicesFormData = {
+  const initialValues: UnitedVoicesFormDataWithRevival = {
     title: '',
     subTitle: '',
     description: '',
     frontimage: null,
     backimage: null,
     voices: [],
+    revival: {
+      title: '',
+      description: '',
+      pointList: [],
+    },
   };
 
   // Fetch United Voices data from Sanity
@@ -104,7 +125,7 @@ const UnitedVoicesForm = () => {
     fetchUnitedVoicesData();
   }, [toast]);
 
-  const getInitialFormValues = (): UnitedVoicesFormData => {
+  const getInitialFormValues = (): UnitedVoicesFormDataWithRevival => {
     if (unitedVoicesData) {
       return {
         title: unitedVoicesData.title || '',
@@ -113,6 +134,11 @@ const UnitedVoicesForm = () => {
         frontimage: null,
         backimage: null,
         voices: unitedVoicesData.voices || [],
+        revival: {
+          title: unitedVoicesData.revival?.title || '',
+          description: unitedVoicesData.revival?.description || '',
+          pointList: unitedVoicesData.revival?.pointList || [],
+        },
       };
     }
     return initialValues;
@@ -176,7 +202,7 @@ const UnitedVoicesForm = () => {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
-  const handleSubmit = async (values: UnitedVoicesFormData, { resetForm }: any) => {
+  const handleSubmit = async (values: UnitedVoicesFormDataWithRevival, { resetForm }: FormikHelpers<UnitedVoicesFormDataWithRevival>) => {
     setIsSubmitting(true);
     try {
       if (isEditMode && unitedVoicesData) {
@@ -220,7 +246,7 @@ const UnitedVoicesForm = () => {
     }
   };
 
-  const createUnitedVoices = async (values: UnitedVoicesFormData) => {
+  const createUnitedVoices = async (values: UnitedVoicesFormDataWithRevival) => {
     const payload: any = {
       _type: 'unitedVoices',
       title: values.title || undefined,
@@ -228,6 +254,15 @@ const UnitedVoicesForm = () => {
       description: values.description || undefined,
       voices: values.voices || [],
     };
+
+    // Add revival data if provided
+    if (values.revival?.title || values.revival?.description || values.revival?.pointList?.length) {
+      payload.revival = {
+        title: values.revival.title || undefined,
+        description: values.revival.description || undefined,
+        pointList: values.revival.pointList?.filter(p => p.trim()) || [],
+      };
+    }
 
     if (newFrontImage) {
       const asset = await client.assets.upload('image', newFrontImage);
@@ -254,7 +289,7 @@ const UnitedVoicesForm = () => {
     await client.create(payload);
   };
 
-  const updateUnitedVoices = async (values: UnitedVoicesFormData) => {
+  const updateUnitedVoices = async (values: UnitedVoicesFormDataWithRevival) => {
     if (!unitedVoicesData) return;
 
     const updatePayload: any = {
@@ -263,6 +298,15 @@ const UnitedVoicesForm = () => {
       description: values.description || undefined,
       voices: values.voices || [],
     };
+
+    // Add revival data if provided
+    if (values.revival?.title || values.revival?.description || values.revival?.pointList?.length) {
+      updatePayload.revival = {
+        title: values.revival.title || undefined,
+        description: values.revival.description || undefined,
+        pointList: values.revival.pointList?.filter(p => p.trim()) || [],
+      };
+    }
 
     if (newFrontImage) {
       const asset = await client.assets.upload('image', newFrontImage);
@@ -300,7 +344,7 @@ const UnitedVoicesForm = () => {
   }
 
   return (
-    <div  className=' flex gap-4'>
+    <div  className='flex gap-1'>
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <CardTitle>United Voices</CardTitle>
@@ -310,6 +354,7 @@ const UnitedVoicesForm = () => {
       </CardHeader>
       <CardContent>
         <Formik
+          innerRef={formikRef}
           initialValues={getInitialFormValues()}
           validationSchema={unitedVoicesValidationSchema}
           onSubmit={handleSubmit}
@@ -526,21 +571,86 @@ const UnitedVoicesForm = () => {
                 </FieldArray>
               </div>
 
-              {/* Submit Buttons */}
-              <div className="flex gap-4">
-              
-                {/* <Button type="reset" variant="outline" disabled={isSubmitting}>
-                  Reset
-                </Button> */}
+              <Separator />
+
+              {/* Revival Section */}
+              <div className="space-y-4">
+                <Label className="text-lg font-semibold">Revival Text (Optional)</Label>
+
+                <div className="space-y-2">
+                  <Label htmlFor="revival.title">Revival Title</Label>
+                  <Field
+                    as={Input}
+                    name="revival.title"
+                    placeholder="Enter revival title"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="revival.description">Revival Description</Label>
+                  <Field
+                    as={Textarea}
+                    name="revival.description"
+                    placeholder="Enter revival description"
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Revival Point List</Label>
+                  <FieldArray name="revival.pointList">
+                    {({ push, remove }) => (
+                      <div className="space-y-4">
+                        {values.revival?.pointList?.map((_, index) => (
+                          <div key={index} className="flex gap-2 items-end">
+                            <div className="flex-1 space-y-2">
+                              <Label htmlFor={`revival.pointList.${index}`}>Point #{index + 1}</Label>
+                              <Field
+                                as={Input}
+                                name={`revival.pointList.${index}`}
+                                placeholder="Enter point"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => remove(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        ))}
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => push('')}
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Point
+                        </Button>
+                      </div>
+                    )}
+                  </FieldArray>
+                </div>
               </div>
+
+              {/* Submit Button */}
+            
             </Form>
           )}
         </Formik>
       </CardContent>
-
     </Card>
-    <div className=' '>
-        <Button type="submit" disabled={isSubmitting} className="flex-1 fixed bottom-1  right-2" variant="theme">
+      <div className="fixed bottom-1 right-1">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1"
+                  variant="theme"
+                >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -550,8 +660,8 @@ const UnitedVoicesForm = () => {
                     isEditMode ? 'Update United Voices' : 'Create United Voices'
                   )}
                 </Button>
-                </div>
-    </div>
+              </div>
+              </div>
   );
 };
 

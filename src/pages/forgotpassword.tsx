@@ -38,7 +38,7 @@ const ForgotPassword = () => {
         description: `A verification code has been sent to ${data.email}`,
       });
 
-      navigate("/verify-otp", { state: { email: data.email } });
+      navigate("/otp", { state: { email: data.email } });
     } catch (error: any) {
       toast({
         variant: "destructive",

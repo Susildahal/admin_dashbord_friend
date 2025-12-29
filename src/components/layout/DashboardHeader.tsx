@@ -76,7 +76,7 @@ export function DashboardHeader() {
   const HandleLogout = async () => {
     try {
       localStorage.removeItem('accessToken');
-      window.location.href = '/login';
+      window.location.href = '/auth';
     }
     catch (error) {
       console.error('Logout failed:', error);
