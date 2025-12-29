@@ -20,6 +20,7 @@ import client from '@/config/sanity';
 import { NavLink } from '@/components/NavLink';
 import {
   Sidebar,
+  
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
@@ -136,7 +137,12 @@ export function AppSidebar() {
           collapsed && "justify-center"
         )}>
           <div className="h-8 w-8 rounded-md bg-foreground flex items-center justify-center">
-            <span className="text-background font-display font-bold text-sm">FU</span>
+            <span className="text-background font-display font-bold text-sm">
+              <img 
+              src ='./logo.svg'
+              className=' h-8 w-8 rounded'
+              />
+            </span>
           </div>
           {!collapsed && (
             <div>

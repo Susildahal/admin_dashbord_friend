@@ -120,7 +120,7 @@ export default function Login() {
             {/* Password */}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <div className="relative">
+              <div className="relative ">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
