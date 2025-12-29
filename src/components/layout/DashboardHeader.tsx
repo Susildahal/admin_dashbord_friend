@@ -64,7 +64,7 @@ export function DashboardHeader() {
     const fetchData = async () => {
       try {
         const response = await axiosInstance.get('/users/me');
-        setMee(response.data.data.user);
+        setMee(response.data.data);
       } catch (error) {
         // Handle error
       }
