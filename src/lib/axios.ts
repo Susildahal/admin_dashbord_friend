@@ -49,9 +49,9 @@ axiosInstance.interceptors.response.use(
             description: 'Your session has expired. Please log in again.',
             variant: 'destructive',
           });
-          // Redirect to /auth
-          if (typeof window !== 'undefined') {
-            window.location.href = '/auth';
+          // Robust redirect to /auth
+          if (typeof window !== 'undefined' && window.location.pathname !== '/auth') {
+            window.location.replace('/auth');
           }
           break;
         case 403:
