@@ -636,15 +636,7 @@ const UnitedVoicesForm = () => {
                   </FieldArray>
                 </div>
               </div>
-
-              {/* Submit Button */}
-            
-            </Form>
-          )}
-        </Formik>
-      </CardContent>
-    </Card>
-      <div className="fixed bottom-1 right-1">
+              <div className="fixed bottom-1 right-1">
                 <Button
                   type="submit"
                   disabled={isSubmitting}
@@ -661,6 +653,15 @@ const UnitedVoicesForm = () => {
                   )}
                 </Button>
               </div>
+
+              {/* Submit Button */}
+            
+            </Form>
+          )}
+        </Formik>
+      </CardContent>
+    </Card>
+      
               </div>
   );
 };

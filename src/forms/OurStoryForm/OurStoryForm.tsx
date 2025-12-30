@@ -179,6 +179,7 @@ const OurStoryForm = () => {
 
   return (
     <div className=' flex  gap-4  '>
+   
     <Card className="w-full   max-w-5xl mx-auto">
       <CardHeader>
         <CardTitle>Our Story</CardTitle>
@@ -412,14 +413,7 @@ const OurStoryForm = () => {
               </FieldArray>
 
               {/* Submit Buttons */}
-         
-
-            </Form>
-          )}
-        </Formik>
-      </CardContent>
-    </Card>
-       <div className=" fixed bottom-2 right-0  shadow-md flex gap-4">
+           <div className=" fixed bottom-2 right-1  shadow-md flex gap-4">
   <Button 
     type="submit" 
     disabled={isSubmitting} 
@@ -436,6 +430,13 @@ const OurStoryForm = () => {
     )}
   </Button>
 </div>
+
+            </Form>
+          )}
+        </Formik>
+      </CardContent>
+    </Card>
+     
     </div>
   );
 };

@@ -693,14 +693,6 @@ const ServicesForm = () => {
                     isEditMode ? 'Update Service' : 'Create Service'
                   )}
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  disabled={isSubmitting}
-                  onClick={() => resetForm()}
-                >
-                  Reset
-                </Button>
               </div>
             </Form>
           )}
