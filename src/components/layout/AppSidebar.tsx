@@ -139,7 +139,7 @@ export function AppSidebar() {
           <div className="h-8 w-8 rounded-md bg-foreground flex items-center justify-center">
             <span className="text-background font-display font-bold text-sm">
               <img 
-              src ='./logo.svg'
+              src ='/logo.svg'
               className=' h-8 w-8 rounded'
               />
             </span>

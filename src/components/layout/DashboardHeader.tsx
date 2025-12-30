@@ -33,7 +33,6 @@ const routeNames: Record<string, string> = {
 export function DashboardHeader() {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
-  const [searchQuery, setSearchQuery] = useState('');
 
   const currentPageName = routeNames[location.pathname] || 'Dashboard';
 
