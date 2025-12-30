@@ -20,6 +20,7 @@ import {
 import {
 
   FaPrescriptionBottle,
+   FaShoppingCart,
   FaGasPump,
   FaBus,
   FaBook,
@@ -62,6 +63,7 @@ import client from '@/config/sanity';
 // Map of available icon components
 const ICON_MAP: Record<string, any> = {
   TiHome,
+  FaShoppingCart,
 
   FaPrescriptionBottle,
   MdElectricBolt,
