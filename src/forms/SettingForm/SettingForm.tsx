@@ -480,14 +480,7 @@ const SettingForm = () => {
                 </div>
 
                 {/* Submit Buttons */}
-              
-              </Form>
-            )}
-          </Formik>
-        )}
-      </CardContent>
-    </Card>
-      <div className="fixed bottom-1 right-1">
+                   <div className="fixed bottom-1 right-1">
                   <Button type="submit" disabled={isSubmitting} className="flex-1" variant="theme">
                     {isSubmitting ? (
                       <>
@@ -500,6 +493,13 @@ const SettingForm = () => {
                   </Button>
                 
                 </div>
+              </Form>
+            )}
+          </Formik>
+        )}
+      </CardContent>
+    </Card>
+ 
     </div>
   );
 };
