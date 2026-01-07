@@ -12,6 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Plus, Trash2, Upload, X } from 'lucide-react';
 import client from '@/config/sanity';
 import imageUrlBuilder from '@sanity/image-url';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 interface FAQDocument {
   _id: string;
@@ -328,19 +330,23 @@ const FAQForm = () => {
 
                             <div className="space-y-2">
                               <Label htmlFor={`faq.${index}.answer`}>Answer</Label>
-                              <Field
-                                as={Textarea}
-                                name={`faq.${index}.answer`}
-                                placeholder="Enter your answer (minimum 20 characters)"
-                                rows={4}
-                                className={
-                                  errors.faq?.[index] &&
-                                  touched.faq?.[index] &&
-                                  (errors.faq[index] as any)?.answer
-                                    ? 'border-red-500'
-                                    : ''
-                                }
-                              />
+                              <ReactQuill
+                              onChange={(content) => setFieldValue(`faq.${index}.answer`, content)}
+                              value={values.faq[index]?.answer || ''} 
+                                 modules={{
+                                              toolbar: [
+                                                [{ 'header': [1, 2, 3, false] }],
+                                                ['bold', 'italic', 'underline', 'strike'],
+                                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                                [{ 'align': [] }],
+                                                ['link'],
+                                                ['clean']
+                                              ]
+                                            }}
+                                        
+                                         
+                                         />
+                                
                               <ErrorMessage
                                 name={`faq.${index}.answer`}
                                 component="p"
