@@ -12,6 +12,7 @@ import { Loader2 } from 'lucide-react';
 import client from '@/config/sanity';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { quillModules, quillFormats } from '@/lib/quillConfig';
 
 interface BannerDocument {
   _id: string;
@@ -177,19 +178,9 @@ const BannerForm = () => {
             <ReactQuill
               id="subTitle"
               value={values.subTitle}
-              
               placeholder="Enter banner subtitle"
-              modules={{
-                toolbar: [
-                  [{ 'header': [1, 2, 3, false] }],
-                  [{ 'color': [] }, { 'background': [] }],
-                  ['bold', 'italic', 'underline', 'strike'],
-                  [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                  [{ 'align': [] }],
-                  ['link'],
-                  ['clean']
-                ]
-              }}
+              modules={quillModules}
+              formats={quillFormats}
               onChange={(value) => setFieldValue('subTitle', value)}
             />
             <ErrorMessage name="subTitle" component="p" className="text-sm text-red-500" />

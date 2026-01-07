@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import client from '@/config/sanity';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { quillModules, quillFormats } from '@/lib/quillConfig';
 interface StorySection {
   title: string;
   content: string[];
@@ -254,16 +255,8 @@ const OurStoryForm = () => {
                                                 value={field.value || ''}
                                                 onChange={value => form.setFieldValue(`sections.${sectionIndex}.content.${contentIndex}`, value)}
                                                 placeholder="Enter content paragraph"
-                                                modules={{
-                                                  toolbar: [
-                                                    [{ 'header': [1, 2, 3, false] }],
-                                                    ['bold', 'italic', 'underline', 'strike'],
-                                                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                                    [{ 'align': [] }],
-                                                    ['link'],
-                                                    ['clean']
-                                                  ]
-                                                }}
+                                                modules={quillModules}
+                                                formats={quillFormats}
                                               />
                                             )}
                                           </Field>
@@ -319,16 +312,8 @@ const OurStoryForm = () => {
                                               value={field.value || ''}
                                               onChange={value => form.setFieldValue(`sections.${sectionIndex}.points.${pointIndex}`, value)}
                                               placeholder="Enter point"
-                                              modules={{
-                                                toolbar: [
-                                                  [{ 'header': [1, 2, 3, false] }],
-                                                  ['bold', 'italic', 'underline', 'strike'],
-                                                  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                                  [{ 'align': [] }],
-                                                  ['link'],
-                                                  ['clean']
-                                                ]
-                                              }}
+                                              modules={quillModules}
+                                              formats={quillFormats}
                                             />
                                           )}
                                         </Field>
@@ -370,6 +355,8 @@ const OurStoryForm = () => {
                                 (values.sections[sectionIndex].ending = content)
                               }
                               placeholder="Enter ending text"
+                              modules={quillModules}
+                              formats={quillFormats}
                             />
                             {/* <Field
 

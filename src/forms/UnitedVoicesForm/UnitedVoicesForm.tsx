@@ -15,6 +15,7 @@ import client from '@/config/sanity';
 import imageUrlBuilder from '@sanity/image-url';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { quillModules, quillFormats } from '@/lib/quillConfig';
 
 interface VoiceItem {
   heading: string;
@@ -597,16 +598,8 @@ const UnitedVoicesForm = () => {
                         value={field.value || ''}
                         onChange={(value) => form.setFieldValue('revival.description', value)}
                         placeholder="Enter revival description"
-                        modules={{
-                          toolbar: [
-                            [{ 'header': [1, 2, 3, false] }],
-                            ['bold', 'italic', 'underline', 'strike'],
-                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                            [{ 'align': [] }],
-                            ['link'],
-                            ['clean']
-                          ]
-                        }}
+                        modules={quillModules}
+                        formats={quillFormats}
                       />
                     )}
                   </Field>
@@ -628,7 +621,8 @@ const UnitedVoicesForm = () => {
                                   setFieldValue(`revival.pointList.${index}`, value)
                                 }
                                 placeholder="Enter point"
-                                className={`dangerouslySetInnerHTML`}
+                                modules={quillModules}
+                                formats={quillFormats}
                               />
                               {/* <Field
 

@@ -16,6 +16,7 @@ import client from '@/config/sanity';
 import imageUrlBuilder from '@sanity/image-url';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { quillModules, quillFormats } from '@/lib/quillConfig';
 
 const builder = imageUrlBuilder(client);
 
@@ -354,20 +355,12 @@ const ServicesForm = () => {
                     </Label>
                     <ReactQuill
                       theme="snow"
-                      value={values.title} 
+                      value={values.title}
                       onChange={(content) => setFieldValue('title', content)}
                       placeholder="Enter service title"
                       className=" mb-6"
-                      modules={{
-                        toolbar: [
-                          [{ 'header': [1, 2, 3, false] }],
-                          ['bold', 'italic', 'underline', 'strike'],
-                          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                          [{ 'align': [] }],
-                          ['link'],
-                          ['clean']
-                        ]
-                      }}
+                      modules={quillModules}
+                      formats={quillFormats}
                     />
                     <ErrorMessage name="title" component="p" className="text-sm text-red-500" />
                   </div>
@@ -584,22 +577,12 @@ const ServicesForm = () => {
                     <Label htmlFor="details.intro">Introduction (Optional)</Label>
                     <ReactQuill
                       theme="snow"
-                      value={values.details?.intro || ''} 
+                      value={values.details?.intro || ''}
                       onChange={(content) => setFieldValue('details.intro', content)}
                       placeholder="Enter introduction text"
-                 
-                      modules={{
-                                              toolbar: [
-                                                [{ 'header': [1, 2, 3, false] }],
-                                                ['bold', 'italic', 'underline', 'strike'],
-                                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                                [{ 'align': [] }],
-                                                ['link'],
-                                                ['clean']
-                                              ]
-                                            }}
-                                        
-                                        />
+                      modules={quillModules}
+                      formats={quillFormats}
+                    />
                 
 
                     <ErrorMessage name="details.intro" component="p" className="text-sm text-red-500" />         
@@ -664,20 +647,11 @@ const ServicesForm = () => {
                                   </Label>
                                   <ReactQuill
                                     theme="snow"
-                                    value={section.text || ''} 
+                                    value={section.text || ''}
                                     onChange={(content) => setFieldValue(`details.sections.${index}.text`, content)}
                                     placeholder="Enter section text"
-                                  
-                                    modules={{
-                                      toolbar: [
-                                        [{ 'header': [1, 2, 3, false] }],
-                                        ['bold', 'italic', 'underline', 'strike'],
-                                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                        [{ 'align': [] }],
-                                        ['link'],
-                                        ['clean']
-                                      ]
-                                    }}
+                                    modules={quillModules}
+                                    formats={quillFormats}
                                   />
                                   
                                 </div>

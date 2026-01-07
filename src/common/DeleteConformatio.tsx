@@ -3,12 +3,14 @@ import axiosInstance from "@/lib/axios";
 interface DeleteConfirmationProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  // allow onConfirm to be sync or async
+  onConfirm: () => void | Promise<void>;
   itemName: string;
-  deleteId: string | null;
-  endpoint: string;
-  deleteLoading: boolean;
-  onSuccess: () => void;
+  // make the following optional so component can be used with minimal props
+  deleteId?: string | null;
+  endpoint?: string;
+  deleteLoading?: boolean;
+  onSuccess?: () => void;
 }
 
 
@@ -27,18 +29,13 @@ const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({
   onClose,
   onConfirm,
   itemName,
-  deleteId,
-  endpoint,
-  onSuccess,
-  deleteLoading,
+  deleteLoading = false,
 }) => {
-
-  const deleteUser = async () => {
+  const handleConfirm = async () => {
     try {
-      await axiosInstance.delete(`${endpoint}/${deleteId}`);
-      onSuccess();
-    } catch (error) {
-      console.error("Error deleting item:", error);
+      await onConfirm();
+    } catch (err) {
+      console.error('Error in onConfirm:', err);
     }
   };
 
@@ -60,7 +57,7 @@ const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({
           </button>
           <button
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-            onClick={onConfirm}
+            onClick={handleConfirm}
             disabled={deleteLoading}
           >
             {deleteLoading ? "Deleting..." : "Delete"}

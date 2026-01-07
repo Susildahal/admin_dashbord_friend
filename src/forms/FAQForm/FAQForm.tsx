@@ -14,6 +14,7 @@ import client from '@/config/sanity';
 import imageUrlBuilder from '@sanity/image-url';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { quillModules, quillFormats } from '@/lib/quillConfig';
 
 interface FAQDocument {
   _id: string;
@@ -331,21 +332,11 @@ const FAQForm = () => {
                             <div className="space-y-2">
                               <Label htmlFor={`faq.${index}.answer`}>Answer</Label>
                               <ReactQuill
-                              onChange={(content) => setFieldValue(`faq.${index}.answer`, content)}
-                              value={values.faq[index]?.answer || ''} 
-                                 modules={{
-                                              toolbar: [
-                                                [{ 'header': [1, 2, 3, false] }],
-                                                ['bold', 'italic', 'underline', 'strike'],
-                                                [{ 'list': 'ordered' ,}, { 'list': 'bullet' } , { 'indent': '-1'}, { 'indent': '+1' } ,{'roman': 'link' }],
-                                                [{ 'align': [] }],
-                                                ['link'],
-                                                ['clean']
-                                              ]
-                                            }}
-                                        
-                                         
-                                         />
+                                onChange={(content) => setFieldValue(`faq.${index}.answer`, content)}
+                                value={values.faq[index]?.answer || ''}
+                                modules={quillModules}
+                                formats={quillFormats}
+                              />
                                 
                               <ErrorMessage
                                 name={`faq.${index}.answer`}
