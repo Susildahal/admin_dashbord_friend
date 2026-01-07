@@ -353,14 +353,15 @@ const ServicesForm = () => {
                     <Label htmlFor="title">
                       Title <span className="text-red-500">*</span>
                     </Label>
-                    <ReactQuill
-                      theme="snow"
+                    <Field
+            
                       value={values.title}
-                      onChange={(content) => setFieldValue('title', content)}
+                      as={Input}
+                      name="title"
+                      
+
                       placeholder="Enter service title"
                       className=" mb-6"
-                      modules={quillModules}
-                      formats={quillFormats}
                     />
                     <ErrorMessage name="title" component="p" className="text-sm text-red-500" />
                   </div>
