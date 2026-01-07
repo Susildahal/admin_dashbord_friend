@@ -10,6 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import client from '@/config/sanity';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 interface BannerDocument {
   _id: string;
@@ -154,7 +156,7 @@ const BannerForm = () => {
           onSubmit={handleSubmit}
           enableReinitialize
         >
-          {({ errors, touched }) => (
+          {({ errors, touched, values, setFieldValue }) => (
             <Form className="space-y-6">
               {/* Title */}
               <div className="space-y-2">
@@ -169,18 +171,29 @@ const BannerForm = () => {
                 <ErrorMessage name="title" component="p" className="text-sm text-red-500" />
               </div>
 
-              {/* Sub Title */}
-              <div className="space-y-2">
-                <Label htmlFor="subTitle">Sub Title (Optional)</Label>
-                <Field
-                  as={Input}
-                  id="subTitle"
-                  name="subTitle"
-                  placeholder="Enter banner subtitle"
-                  className={errors.subTitle && touched.subTitle ? 'border-red-500' : ''}
-                />
-                <ErrorMessage name="subTitle" component="p" className="text-sm text-red-500" />
-              </div>
+          {/* Sub Title */}
+          <div className="space-y-2">
+            <Label htmlFor="subTitle">Sub Title (Optional)</Label>
+            <ReactQuill
+              id="subTitle"
+              value={values.subTitle}
+              
+              placeholder="Enter banner subtitle"
+              modules={{
+                toolbar: [
+                  [{ 'header': [1, 2, 3, false] }],
+                  [{ 'color': [] }, { 'background': [] }],
+                  ['bold', 'italic', 'underline', 'strike'],
+                  [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                  [{ 'align': [] }],
+                  ['link'],
+                  ['clean']
+                ]
+              }}
+              onChange={(value) => setFieldValue('subTitle', value)}
+            />
+            <ErrorMessage name="subTitle" component="p" className="text-sm text-red-500" />
+          </div>
 
               {/* Submit Buttons */}
               <div className="flex gap-4">
@@ -194,7 +207,7 @@ const BannerForm = () => {
                     isEditMode ? 'Update Banner' : 'Create Banner'
                   )}
                 </Button>
-              
+
               </div>
             </Form>
           )}
