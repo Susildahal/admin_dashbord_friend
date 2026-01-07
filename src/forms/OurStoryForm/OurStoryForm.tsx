@@ -12,7 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import client from '@/config/sanity';
-
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 interface StorySection {
   title: string;
   content: string[];
@@ -243,24 +244,42 @@ const OurStoryForm = () => {
                               {({ push: pushContent, remove: removeContent }) => (
                                 <div className="space-y-2">
                                   {section.content.map((_, contentIndex) => (
-                                    <div key={contentIndex} className="flex gap-2">
-                                      <Field
-                                        as={Textarea}
-                                        name={`sections.${sectionIndex}.content.${contentIndex}`}
-                                        placeholder="Enter content paragraph"
-                                        rows={3}
-                                        className="flex-1"
-                                      />
-                                      {section.content.length > 1 && (
-                                        <Button
-                                          type="button"
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => removeContent(contentIndex)}
-                                        >
-                                          <Trash2 className="h-4 w-4 text-red-500" />
-                                        </Button>
-                                      )}
+                                    <div key={`section-${sectionIndex}-content-${contentIndex}`} className="space-y-2">
+                                      <div className="flex gap-2 items-start">
+                                        <div className="flex-1">
+                                          <Field name={`sections.${sectionIndex}.content.${contentIndex}`}>
+                                            {({ field, form }: any) => (
+                                              <ReactQuill
+                                                theme="snow"
+                                                value={field.value || ''}
+                                                onChange={value => form.setFieldValue(`sections.${sectionIndex}.content.${contentIndex}`, value)}
+                                                placeholder="Enter content paragraph"
+                                                modules={{
+                                                  toolbar: [
+                                                    [{ 'header': [1, 2, 3, false] }],
+                                                    ['bold', 'italic', 'underline', 'strike'],
+                                                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                                    [{ 'align': [] }],
+                                                    ['link'],
+                                                    ['clean']
+                                                  ]
+                                                }}
+                                              />
+                                            )}
+                                          </Field>
+                                        </div>
+                                        {section.content.length > 1 && (
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => removeContent(contentIndex)}
+                                            className="mt-1"
+                                          >
+                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                          </Button>
+                                        )}
+                                      </div>
                                     </div>
                                   ))}
                                   <ErrorMessage
@@ -291,18 +310,35 @@ const OurStoryForm = () => {
                               {({ push: pushPoint, remove: removePoint }) => (
                                 <div className="space-y-2">
                                   {section.points?.map((_, pointIndex) => (
-                                    <div key={pointIndex} className="flex gap-2">
-                                      <Field
-                                        as={Input}
-                                        name={`sections.${sectionIndex}.points.${pointIndex}`}
-                                        placeholder="Enter point"
-                                        className="flex-1"
-                                      />
+                                    <div key={`point-${pointIndex}`} className="flex gap-2 items-start">
+                                      <div className="flex-1">
+                                        <Field name={`sections.${sectionIndex}.points.${pointIndex}`}>
+                                          {({ field, form }: any) => (
+                                            <ReactQuill
+                                              theme="snow"
+                                              value={field.value || ''}
+                                              onChange={value => form.setFieldValue(`sections.${sectionIndex}.points.${pointIndex}`, value)}
+                                              placeholder="Enter point"
+                                              modules={{
+                                                toolbar: [
+                                                  [{ 'header': [1, 2, 3, false] }],
+                                                  ['bold', 'italic', 'underline', 'strike'],
+                                                  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                                  [{ 'align': [] }],
+                                                  ['link'],
+                                                  ['clean']
+                                                ]
+                                              }}
+                                            />
+                                          )}
+                                        </Field>
+                                      </div>
                                       <Button
                                         type="button"
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => removePoint(pointIndex)}
+                                        className="mt-1"
                                       >
                                         <Trash2 className="h-4 w-4 text-red-500" />
                                       </Button>
@@ -327,12 +363,21 @@ const OurStoryForm = () => {
                             <Label htmlFor={`sections.${sectionIndex}.ending`}>
                               Ending (Optional)
                             </Label>
-                            <Field
+                            <ReactQuill
+                              theme="snow"
+                              value={section.ending || ''}
+                              onChange={(content) =>
+                                (values.sections[sectionIndex].ending = content)
+                              }
+                              placeholder="Enter ending text"
+                            />
+                            {/* <Field
+
                               as={Textarea}
                               name={`sections.${sectionIndex}.ending`}
                               placeholder="Enter ending text"
                               rows={3}
-                            />
+                            /> */}
                           </div>
 
                           <Separator />

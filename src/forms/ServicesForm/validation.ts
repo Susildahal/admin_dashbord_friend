@@ -3,6 +3,7 @@ import * as Yup from 'yup';
 export const getServicesValidationSchema = () => {
   return Yup.object().shape({
     title: Yup.string().required('Title is required'),
+    order: Yup.number().required('Order is required').typeError('Order must be a number'),
     description: Yup.string().required('Description is required'),
     image: Yup.mixed().nullable(),
     link: Yup.string()

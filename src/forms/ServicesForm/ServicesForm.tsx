@@ -14,6 +14,8 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import client from '@/config/sanity';
 import imageUrlBuilder from '@sanity/image-url';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const builder = imageUrlBuilder(client);
 
@@ -34,6 +36,7 @@ const ServicesForm = () => {
 
   const initialValues: ServicesFormData = {
     title: '',
+    order: '',
     description: '',
     image: null,
     link: '',
@@ -99,6 +102,7 @@ const ServicesForm = () => {
     if (serviceData && isEditMode) {
       return {
         title: serviceData.title || '',
+        order: serviceData.order || '',
         description: serviceData.description || '',
         image: serviceData.image ? serviceData.image : null, // Keep original image object
         link: serviceData.link || '',
@@ -201,6 +205,7 @@ const ServicesForm = () => {
     const payload: any = {
       _type: 'services',
       title: values.title,
+      order: values.order,
       description: values.description,
       link: values.link,
       demands: values.demands.filter(d => d.trim() !== ''),
@@ -243,6 +248,7 @@ const ServicesForm = () => {
 
     const updatePayload: any = {
       title: values.title,
+      order: values.order,
       description: values.description,
       link: values.link,
       demands: values.demands.filter(d => d.trim() !== ''),
@@ -346,8 +352,32 @@ const ServicesForm = () => {
                     <Label htmlFor="title">
                       Title <span className="text-red-500">*</span>
                     </Label>
-                    <Field as={Input} name="title" placeholder="Enter service title" />
+                    <ReactQuill
+                      theme="snow"
+                      value={values.title} 
+                      onChange={(content) => setFieldValue('title', content)}
+                      placeholder="Enter service title"
+                      className=" mb-6"
+                      modules={{
+                        toolbar: [
+                          [{ 'header': [1, 2, 3, false] }],
+                          ['bold', 'italic', 'underline', 'strike'],
+                          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                          [{ 'align': [] }],
+                          ['link'],
+                          ['clean']
+                        ]
+                      }}
+                    />
                     <ErrorMessage name="title" component="p" className="text-sm text-red-500" />
+                  </div>
+                
+                    <div className="space-y-2">
+                    <Label htmlFor="order ">
+                      Order <span className="text-red-500">*</span>
+                    </Label>
+                    <Field as={Input} name="order" placeholder="Enter service order" />
+                    <ErrorMessage name="order" component="p" className="text-sm text-red-500" />
                   </div>
 
                   <div className="space-y-2">
@@ -552,15 +582,31 @@ const ServicesForm = () => {
                 <TabsContent value="details" className="space-y-6 mt-6">
                   <div className="space-y-2">
                     <Label htmlFor="details.intro">Introduction (Optional)</Label>
-                    <Field
-                      as={Textarea}
-                      name="details.intro"
+                    <ReactQuill
+                      theme="snow"
+                      value={values.details?.intro || ''} 
+                      onChange={(content) => setFieldValue('details.intro', content)}
                       placeholder="Enter introduction text"
-                      rows={4}
-                    />
+                 
+                      modules={{
+                                              toolbar: [
+                                                [{ 'header': [1, 2, 3, false] }],
+                                                ['bold', 'italic', 'underline', 'strike'],
+                                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                                [{ 'align': [] }],
+                                                ['link'],
+                                                ['clean']
+                                              ]
+                                            }}
+                                        
+                                        />
+                
+
+                    <ErrorMessage name="details.intro" component="p" className="text-sm text-red-500" />         
+
                   </div>
 
-                  <Separator />
+                  
 
                   {/* Detail Sections */}
                   <div className="space-y-3">
@@ -616,12 +662,24 @@ const ServicesForm = () => {
                                   <Label htmlFor={`details.sections.${index}.text`}>
                                     Text (Optional)
                                   </Label>
-                                  <Field
-                                    as={Textarea}
-                                    name={`details.sections.${index}.text`}
-                                    placeholder="Section text"
-                                    rows={3}
+                                  <ReactQuill
+                                    theme="snow"
+                                    value={section.text || ''} 
+                                    onChange={(content) => setFieldValue(`details.sections.${index}.text`, content)}
+                                    placeholder="Enter section text"
+                                  
+                                    modules={{
+                                      toolbar: [
+                                        [{ 'header': [1, 2, 3, false] }],
+                                        ['bold', 'italic', 'underline', 'strike'],
+                                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                        [{ 'align': [] }],
+                                        ['link'],
+                                        ['clean']
+                                      ]
+                                    }}
                                   />
+                                  
                                 </div>
 
                                 {/* List items */}

@@ -13,6 +13,8 @@ import { Loader2, Plus, Trash2, Upload, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import client from '@/config/sanity';
 import imageUrlBuilder from '@sanity/image-url';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 interface VoiceItem {
   heading: string;
@@ -588,12 +590,26 @@ const UnitedVoicesForm = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="revival.description">Revival Description</Label>
-                  <Field
-                    as={Textarea}
-                    name="revival.description"
-                    placeholder="Enter revival description"
-                    rows={4}
-                  />
+                  <Field name="revival.description">
+                    {({ field, form }: any) => (
+                      <ReactQuill
+                        theme="snow"
+                        value={field.value || ''}
+                        onChange={(value) => form.setFieldValue('revival.description', value)}
+                        placeholder="Enter revival description"
+                        modules={{
+                          toolbar: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            [{ 'align': [] }],
+                            ['link'],
+                            ['clean']
+                          ]
+                        }}
+                      />
+                    )}
+                  </Field>
                 </div>
 
                 <div className="space-y-2">
@@ -605,11 +621,21 @@ const UnitedVoicesForm = () => {
                           <div key={index} className="flex gap-2 items-end">
                             <div className="flex-1 space-y-2">
                               <Label htmlFor={`revival.pointList.${index}`}>Point #{index + 1}</Label>
-                              <Field
+                              <ReactQuill
+                                theme="snow"
+                                value={values.revival.pointList[index] || ''}
+                                onChange={(value) =>
+                                  setFieldValue(`revival.pointList.${index}`, value)
+                                }
+                                placeholder="Enter point"
+                                className={`dangerouslySetInnerHTML`}
+                              />
+                              {/* <Field
+
                                 as={Input}
                                 name={`revival.pointList.${index}`}
                                 placeholder="Enter point"
-                              />
+                              /> */}
                             </div>
                             <Button
                               type="button"

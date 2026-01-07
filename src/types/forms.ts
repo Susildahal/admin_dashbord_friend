@@ -72,6 +72,7 @@ export interface ServicesFormData {
   demandText?: string;
   references?: ReferenceItem[];
   details?: ServiceDetails;
+  order: number | string;
 }
 
 // Setting Form Types
