@@ -462,19 +462,24 @@ const ServicesForm = () => {
                       {({ push, remove }) => (
                         <div className="space-y-2">
                           {values.demands.map((_, index) => (
-                            <div key={index} className="flex gap-2">
-                              <Field
-                                as={Input}
-                                name={`demands.${index}`}
-                                placeholder="Enter demand"
-                                className="flex-1"
-                              />
+                            <div key={index} className="flex gap-2 items-start">
+                              <div className="flex-1">
+                                <ReactQuill
+                                  theme="snow"
+                                  value={values.demands[index] || ''}
+                                  onChange={(content) => setFieldValue(`demands.${index}`, content)}
+                                  placeholder="Enter demand"
+                                  modules={quillModules}
+                                  formats={quillFormats}
+                                />
+                              </div>
                               {values.demands.length > 1 && (
                                 <Button
                                   type="button"
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => remove(index)}
+                                  className="mt-2"
                                 >
                                   <Trash2 className="h-4 w-4 text-red-500" />
                                 </Button>
@@ -498,11 +503,13 @@ const ServicesForm = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="demandText">Demand Text (Optional)</Label>
-                    <Field
-                      as={Textarea}
-                      name="demandText"
+                    < ReactQuill
+                      theme="snow"
+                      value={values.demandText || ''}
+                      onChange={(content) => setFieldValue('demandText', content)}  
                       placeholder="Enter additional demand information"
-                      rows={3}
+                      modules={quillModules}
+                      formats={quillFormats}
                     />
                   </div>
 
