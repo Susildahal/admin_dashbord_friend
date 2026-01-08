@@ -68,6 +68,7 @@ export interface ServicesFormData {
   description: string;
   image: File | null;
   link: string;
+  demandTitle?: string;
   demands: string[];
   demandText?: string;
   references?: ReferenceItem[];

@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -26,7 +26,16 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Auth />} />
+              {/* Root: redirect to dashboard if token exists, otherwise to /auth */}
+              <Route
+                path="/"
+                element={
+                  <NavigateToAppropriate />
+                }
+              />
+              <Route path="/auth" element={<Auth />} />
+
+              
               <Route
                 path="/dashboard"
                 element={
@@ -170,3 +179,13 @@ const App = () => (
 );
 
 export default App;
+
+function NavigateToAppropriate() {
+  // client-side check for auth token
+  try {
+    const token = localStorage.getItem('authToken');
+    return token ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />;
+  } catch (e) {
+    return <Navigate to="/auth" replace />;
+  }
+}

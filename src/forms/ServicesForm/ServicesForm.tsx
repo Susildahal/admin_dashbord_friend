@@ -41,6 +41,7 @@ const ServicesForm = () => {
     description: '',
     image: null,
     link: '',
+    demandTitle:'',
     demands: [''],
     demandText: '',
     references: [],
@@ -107,8 +108,9 @@ const ServicesForm = () => {
         description: serviceData.description || '',
         image: serviceData.image ? serviceData.image : null, // Keep original image object
         link: serviceData.link || '',
-        demands: serviceData.demands && serviceData.demands.length > 0 
-          ? serviceData.demands 
+        demandTitle: serviceData.demandTitle || '',
+        demands: serviceData.demands && serviceData.demands.length > 0
+          ? serviceData.demands
           : [''],
         demandText: serviceData.demandText || '',
         references: serviceData.references || [],
@@ -209,6 +211,7 @@ const ServicesForm = () => {
       order: values.order,
       description: values.description,
       link: values.link,
+      demandTitle: values.demandTitle || undefined,
       demands: values.demands.filter(d => d.trim() !== ''),
       demandText: values.demandText || undefined,
       references: values.references && values.references.length > 0 ? values.references : undefined,
@@ -252,6 +255,7 @@ const ServicesForm = () => {
       order: values.order,
       description: values.description,
       link: values.link,
+      demandTitle: values.demandTitle || undefined,
       demands: values.demands.filter(d => d.trim() !== ''),
       demandText: values.demandText || undefined,
       references: values.references && values.references.length > 0 ? values.references : undefined,
@@ -453,6 +457,21 @@ const ServicesForm = () => {
 
                 {/* Demands & References Tab */}
                 <TabsContent value="demands" className="space-y-6 mt-6">
+                  {/* Demand Title */}
+                  <div className="space-y-2">
+                    <Label htmlFor="demandTitle">Demand Title (Optional)</Label>
+                    <ReactQuill
+                      theme="snow"
+                      value={values.demandTitle || ''}
+                      onChange={(content) => setFieldValue('demandTitle', content)}
+                      placeholder="Enter demand title"
+                      modules={quillModules}
+                      formats={quillFormats}
+                    />
+                   
+                    <ErrorMessage name="demandTitle" component="p" className="text-sm text-red-500" />
+                  </div>
+
                   {/* Demands */}
                   <div className="space-y-3">
                     <Label>
