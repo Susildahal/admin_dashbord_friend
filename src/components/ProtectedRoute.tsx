@@ -1,15 +1,21 @@
 import { Navigate, useLocation } from 'react-router-dom';
-
+import { useEffect, useState } from 'react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
-const user = "susil"; // Replace with actual user retrieval logic
-const loading = false; // Replace with actual loading state logic
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-
   const location = useLocation();
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check localStorage for authToken
+    const token = localStorage.getItem('authToken');
+    setUser(token);
+    setLoading(false);
+  }, []);
 
   if (loading) {
     return (
@@ -23,7 +29,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!user) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

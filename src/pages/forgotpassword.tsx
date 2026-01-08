@@ -108,7 +108,7 @@ const ForgotPassword = () => {
           </Form>
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Remember your password?{" "}
-            <Link to="/auth" className="text-primary hover:underline font-medium">
+            <Link to="/" className="text-primary hover:underline font-medium">
               Back to Login
             </Link>
           </div>

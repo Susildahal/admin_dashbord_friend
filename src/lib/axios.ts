@@ -41,7 +41,7 @@ axiosInstance.interceptors.response.use(
         localStorage.removeItem('authToken');
         // Redirect to /auth
         setTimeout(() => {
-          window.location.href = '/auth';
+          window.location.href = '/';
         }, 100);
         return Promise.reject(error);
       }

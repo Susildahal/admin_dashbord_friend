@@ -32,9 +32,16 @@ export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [navigate]);
 
   const from =
-    (location.state as { from?: { pathname: string } })?.from?.pathname || '/'
+    (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard'
 
 
 

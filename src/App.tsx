@@ -26,9 +26,9 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={<Auth />} />
               <Route
-                path="/"
+                path="/dashboard"
                 element={
                   <ProtectedRoute>
                     <DashboardLayout>
@@ -150,33 +150,15 @@ const App = () => (
                 />
                  <Route
                   path="/forgotpassword"
-                  element={
-                    <ProtectedRoute>
-                   
-                       <ForgotPassword/>
-                    
-                    </ProtectedRoute>
-                  }
+                  element={<ForgotPassword/>}
                 />
                   <Route
                   path="/otp"
-                  element={
-                    <ProtectedRoute>
-                     
-                      <VerifyOTP/>
-                    
-                    </ProtectedRoute>
-                  }
+                  element={<VerifyOTP/>}
                 />
                   <Route
                   path="/resetpassword"
-                  element={
-                    <ProtectedRoute>
-                     
-                      <ResetPassword/>
-                    
-                    </ProtectedRoute>
-                  }
+                  element={<ResetPassword/>}
                 />
 
               <Route path="*" element={<NotFound />} />
